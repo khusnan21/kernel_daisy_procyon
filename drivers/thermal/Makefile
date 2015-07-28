@@ -49,3 +49,5 @@ obj-$(CONFIG_LIMITS_LITE_HW)	+= lmh_lite.o
 ifeq ($(RAINBOW_FEATURE_THERMAL_SWITCH),true)
 ccflags-$(CONFIG_THERMAL) := -DRAINBOW_FEATURE_THERMAL_SWITCH
 endif
+
+obj-$(CONFIG_THERMAL_MONITOR_SIMPLE)	+= msm_thermal_simple.o
