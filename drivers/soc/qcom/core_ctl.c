@@ -763,7 +763,7 @@ static int core_ctl_set_busy(unsigned int cpu, unsigned int busy)
 {
 	struct cpu_data *c = &per_cpu(cpu_state, cpu);
 	struct cpu_data *f;
-	unsigned int old_is_busy = c->is_busy;
+	//unsigned int old_is_busy = c->is_busy;
 
 	if (!c->inited)
 		return 0;
