@@ -3,6 +3,7 @@
  * Android IPC Subsystem
  *
  * Copyright (C) 2017 Google, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -304,7 +305,6 @@ void binder_selftest_alloc(struct binder_alloc *alloc)
 		pr_info("%d tests FAILED\n", binder_selftest_failures);
 	else
 		pr_info("PASSED\n");
-
 done:
 	mutex_unlock(&binder_selftest_lock);
 }

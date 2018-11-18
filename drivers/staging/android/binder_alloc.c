@@ -3,6 +3,7 @@
  * Android IPC Subsystem
  *
  * Copyright (C) 2007-2017 Google, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -989,7 +990,7 @@ binder_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
 	return ret;
 }
 
-static struct shrinker binder_shrinker = {
+struct shrinker binder_shrinker = {
 	.count_objects = binder_shrink_count,
 	.scan_objects = binder_shrink_scan,
 	.seeks = DEFAULT_SEEKS,
