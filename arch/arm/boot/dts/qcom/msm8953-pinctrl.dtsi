@@ -255,34 +255,6 @@
 			};
 		};
 
-		cam_sensor_rear_vana1: cam_sensor_rear_vdig1 {
-			/* VDIG */
-			mux {
-				pins = "gpio46";
-				function = "gpio";
-			};
-
-			config {
-				pins = "gpio46";
-				bias-disable; /* No PULL */
-				drive-strength = <2>; /* 2 MA */
-			};
-		};
-
-		cam_sensor_rear_vana_sleep1: cam_sensor_rear_vdig_sleep1 {
-			/* VDIG */
-			mux {
-				pins = "gpio46";
-				function = "gpio";
-			};
-
-			config {
-				pins = "gpio46";
-				bias-disable; /* No PULL */
-				drive-strength = <2>; /* 2 MA */
-			};
-		};
-
 		cam_sensor_mclk1_default: cam_sensor_mclk1_default {
 			/* MCLK1 */
 			mux {
@@ -1558,12 +1530,12 @@
 		tlmm_gpio_key {
 			gpio_key_active: gpio_key_active {
 				mux {
-					pins = "gpio85", "gpio86", "gpio87";
+					pins = "gpio85";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio85", "gpio86", "gpio87";
+					pins = "gpio85";
 					drive-strength = <2>;
 					bias-pull-up;
 				};
@@ -1571,12 +1543,12 @@
 
 			gpio_key_suspend: gpio_key_suspend {
 				mux {
-					pins = "gpio85", "gpio86", "gpio87";
+					pins = "gpio85";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio85", "gpio86", "gpio87";
+					pins = "gpio85";
 					drive-strength = <2>;
 					bias-pull-up;
 				};

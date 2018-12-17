@@ -226,6 +226,9 @@
 			qcom,bms-psy-name = "bms";
 			qcom,charge-unknown-battery;
 			qcom,thermal-mitigation = <1500 700 600 0>;
+			//qcom,parallel-usb-min-current-ma = <1400>;
+			//qcom,parallel-usb-9v-min-current-ma = <900>;
+			//qcom,parallel-allowed-lowering-ma = <500>;
 			qcom,pmic-revid = <&pmi8950_revid>;
 			qcom,force-aicl-rerun;
 			qcom,aicl-rerun-period-s = <180>;
@@ -597,14 +600,14 @@
 			};
 
 			pmi8950_flashlight: qcom,flashlight {
-				label = "torch";
-				qcom,led-name = "flashlight";
-				qcom,default-led-trigger =
-				                "torch0_trigger";
-				qcom,max-current = <200>;
-				qcom,id = <0>;
-				qcom,current = <120>;
-				};
+                                label = "torch";
+                                qcom,led-name = "flashlight";
+                                qcom,default-led-trigger =
+                                                "torch0_trigger";
+                                qcom,max-current = <200>;
+                                qcom,id = <0>;
+                                qcom,current = <120>;
+                        };
 
 			pmi8950_torch0: qcom,torch_0 {
 				label = "torch";

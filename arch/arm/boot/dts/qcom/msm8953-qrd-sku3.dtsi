@@ -72,6 +72,7 @@
 	ibb-supply = <&ibb_regulator>;
 	/delete-property/ vdd-supply;
 
+	//qcom,dsi-pref-prim-pan = <&dsi_r69006_1080p_cmd>;
         qcom,dsi-pref-prim-pan = <&dsi_otm1911_fhd_vid>;
 	pinctrl-names = "mdss_default", "mdss_sleep";
 	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
@@ -92,21 +93,25 @@
 
 &dsi_otm1911_fhd_vid {
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	//qcom,esd-check-enabled;
 
 };
 
 &dsi_ili7807_fhdplus_vid {
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	//qcom,esd-check-enabled;
 
 };
 
 &dsi_otm1911_fhdplus_vid {
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	//qcom,esd-check-enabled;
 
 };
 
 &dsi_hx8399c_fhdplus_vid {
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	//qcom,esd-check-enabled;
 };
 
 &dsi_r69006_1080p_cmd {
@@ -178,8 +183,4 @@
 
 &wcd_rst_gpio {
 	status = "disabled";
-};
-
-&wled {
-	qcom,dim-mode = "analog";
 };
