@@ -52,7 +52,7 @@
 #include <linux/platform_device.h>
 #endif
 
-//
+
 #define WAKELOCK_HOLD_TIME 2000 /* in ms */
 #define FP_UNLOCK_REJECTION_TIMEOUT (WAKELOCK_HOLD_TIME - 500)
 
@@ -628,7 +628,9 @@ static int gf_release(struct inode *inode, struct file *filp)
 	if (!gf_dev->users) {
 
 		pr_info("disble_irq. irq = %d\n", gf_dev->irq);
-		gf_disable_irq(gf_dev);
+
+                irq_cleanup(gf_dev);
+                gf_cleanup(gf_dev);
 		/*power off the sensor*/
 		gf_dev->device_available = 0;
 		gf_power_off(gf_dev);
@@ -663,7 +665,7 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 	char msg = 0;
 
 
-	pr_err("SXF Enter %s val = %d \n ",__func__,(int)val);
+	printk("SXF Enter %s val = %d \n ",__func__,(int)val);
 	if (val != FB_EVENT_BLANK)
 		return 0;
 	pr_info("[info] %s go to the goodix_fb_state_chg_callback value = %d\n",
@@ -673,7 +675,7 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 
 	if (evdata && evdata->data && val == FB_EVENT_BLANK && gf_dev) {
 		blank = *(int *)(evdata->data);
-		pr_err("SXF_blank = %d\n",blank);
+		printk("SXF_blank = %d\n",blank);
 		switch (blank) {
 		case FB_BLANK_POWERDOWN:
 			if (gf_dev->device_available == 1) {
@@ -706,7 +708,7 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 			break;
 		}
 	}
-	pr_err("SXF Exit %s\n ",__func__);
+	printk("SXF Exit %s\n ",__func__);
 	return NOTIFY_OK;
 }
 
@@ -744,6 +746,9 @@ static int gf_probe(struct platform_device *pdev)
 	INIT_WORK(&gf_dev->work, notification_work);
 
 
+	/* If we can allocate a minor number, hook up this device.
+	 * Reusing minors is fine so long as udev or mdev is working.
+	 */
 	mutex_lock(&device_list_lock);
 	minor = find_first_zero_bit(minors, N_SPI_MINORS);
 	if (minor < N_SPI_MINORS) {

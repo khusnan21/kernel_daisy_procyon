@@ -171,6 +171,13 @@ found:
 	return rc;
 }
 
+/**
+ * sysfs node for controlling clocks.
+ *
+ * This is disabled in platform variant of this driver but kept for
+ * backwards compatibility. Only prints a debug print that it is
+ * disabled.
+ */
 static ssize_t clk_enable_set(struct device *dev,
 	struct device_attribute *attr,
 	const char *buf, size_t count)
@@ -182,6 +189,18 @@ static ssize_t clk_enable_set(struct device *dev,
 }
 static DEVICE_ATTR(clk_enable, S_IWUSR, NULL, clk_enable_set);
 
+/**
+ * Will try to select the set of pins (GPIOS) defined in a pin control node of
+ * the device tree named @p name.
+ *
+ * The node can contain several eg. GPIOs that is controlled when selecting it.
+ * The node may activate or deactivate the pins it contains, the action is
+ * defined in the device tree node itself and not here. The states used
+ * internally is fetched at probe time.
+ *
+ * @see pctl_names
+ * @see fpc1020_probe
+ */
 static int select_pin_ctl(struct fpc1020_data *fpc1020, const char *name)
 {
 	size_t i;
@@ -459,7 +478,7 @@ static ssize_t compatible_all_set(struct device *dev,
 	int irqf;
 	struct  fpc1020_data *fpc1020 = dev_get_drvdata(dev);
 	dev_err(dev, "compatible all enter %d\n", fpc1020->compatible_enabled);
-	if (!strncmp(buf, "enable", strlen("enable")) && fpc1020->compatible_enabled != 1) {
+	if (!strncmp(buf, "enable", strlen("enable")) && fpc1020->compatible_enabled != 1){
 		rc = fpc1020_request_named_gpio(fpc1020, "fpc,gpio_irq",
 			&fpc1020->irq_gpio);
 		if (rc)
@@ -529,8 +548,9 @@ static ssize_t compatible_all_set(struct device *dev,
 		(void)set_clks(fpc1020, false);
 #endif
 	}
-	} else if (!strncmp(buf, "disable", strlen("disable")) && fpc1020->compatible_enabled != 0) {
-		if (gpio_is_valid(fpc1020->irq_gpio)) {
+	}else if (!strncmp(buf, "disable", strlen("disable")) && fpc1020->compatible_enabled != 0){
+		if (gpio_is_valid(fpc1020->irq_gpio))
+		{
 			devm_gpio_free(dev, fpc1020->irq_gpio);
 			pr_info("remove irq_gpio success\n");
 		}
