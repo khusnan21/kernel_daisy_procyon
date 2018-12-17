@@ -1,6 +1,6 @@
 /************************************************************************
 * Copyright (C) 2012-2015, Focaltech Systems (R)£¬All Rights Reserved.
-* Copyright (C) 2018 XiaoMi, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
 *
 * File Name: ini.h
 *
@@ -46,7 +46,7 @@
 #ifdef FOCAL_DBG
 #define FTS_DBG(fmt, args...) printk("[FTS]" fmt, ## args)
 #else
-#define FTS_DBG(fmt, args...) do {} while(0)
+#define FTS_DBG(fmt, args...) do{}while(0)
 #endif
 
 
@@ -57,14 +57,14 @@ struct ini_key_location {
 };
 
 typedef struct _ST_INI_FILE_DATA
- {
+{
 	char pSectionName[MAX_KEY_NAME_LEN];
 	char pKeyName[MAX_KEY_NAME_LEN];
 	char pKeyValue[MAX_KEY_VALUE_LEN];
 	int iSectionNameLen;
 	int iKeyNameLen;
 	int iKeyValueLen;
-} ST_INI_FILE_DATA;
+}ST_INI_FILE_DATA;
 
 
 

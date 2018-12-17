@@ -1,6 +1,6 @@
 /************************************************************************
 * Copyright (C) 2012-2015, Focaltech Systems (R)，All Rights Reserved.
-* Copyright (C) 2018 XiaoMi, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
 *
 * File Name: Global.c
 *
@@ -17,6 +17,9 @@
 #include <linux/kernel.h>
 #include "DetailThreshold.h"
 
+/*-----------------------------------------------------------
+Error Code for Comm
+-----------------------------------------------------------*/
 #define ERROR_CODE_OK								0x00
 #define ERROR_CODE_CHECKSUM_ERROR				0x01
 #define ERROR_CODE_INVALID_COMMAND				0x02
@@ -34,6 +37,9 @@
 #define ERROR_CODE_DEVICE_OPENED					0x0e
 #define ERROR_CODE_DEVICE_CLOSED					0x0f
 
+/*-----------------------------------------------------------
+Test Status
+-----------------------------------------------------------*/
 #define		RESULT_NULL			0
 #define		RESULT_PASS			1
 #define		RESULT_NG		    		2
@@ -42,7 +48,10 @@
 #define		RESULT_REPLACE		5
 #define		RESULT_CONNECTING		6
 
-enum IC_Type
+/*-----------------------------------------------------------
+IC 对应码，每一颗IC代码是8 bit，高四位代表相同系列，低四位区别具体IC
+-----------------------------------------------------------*/
+enum IC_Type对应码，每一颗IC代码是8 bit，高四位代表相同系列，低四位区别具体IC
 {
 	IC_FT5X36 = 0x10,
 	IC_FT5X36i = 0x11,
@@ -84,8 +93,8 @@ enum IC_Type
 #define MAX_IC_TYPE		32
 
 struct StruScreenSeting
- {
-	int iSelectedIC;
+{
+	int iSelectedIC;当前选择的IC
 	int iTxNum;
 	int iRxNum;
 	int isNormalize;
@@ -98,21 +107,23 @@ struct StruScreenSeting
 };
 
 struct stTestItem
- {
-	unsigned char ItemType;
-	unsigned char TestNum;
-	unsigned char TestResult;
-	unsigned char ItemCode;
+{
+	unsigned char ItemType;对测试项进行分类	CfgItem, DataTestItem, GraphTestItem,
+	unsigned char TestNum;测试时的序号
+	unsigned char TestResult;测试结果,NG\PASS\TESTING
+	unsigned char ItemCode;测试项目名代号
+	测试项名
+	释
 };
 
 enum NORMALIZE_Type
- {
+{
 	Overall_Normalize = 0,
 	Auto_Normalize = 1,
 };
 
 enum PROOF_TYPE
- {
+{
 	Proof_Normal,
 	Proof_Level0,
 	Proof_NoWaterProof,
@@ -121,11 +132,11 @@ enum PROOF_TYPE
 extern struct stCfg_MCap_DetailThreshold g_stCfg_MCap_DetailThreshold;
 extern struct stCfg_SCap_DetailThreshold g_stCfg_SCap_DetailThreshold;
 
-extern struct StruScreenSeting g_ScreenSetParam;
+extern struct StruScreenSeting g_ScreenSetParam; 屏幕设置参数
 extern struct stTestItem g_stTestItem[1][MAX_TEST_ITEM];
 
-extern int g_TestItemNum;
-extern char g_strIcName[20];
+extern int g_TestItemNum;/*test item num*/
+extern char g_strIcName[20];/*IC Name*/
 
 
 int GetPrivateProfileString(char *section, char *ItemName, char *defaultvalue, char *returnValue, char *IniFile);

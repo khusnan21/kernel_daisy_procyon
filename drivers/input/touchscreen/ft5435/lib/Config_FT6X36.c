@@ -1,6 +1,6 @@
 /************************************************************************
 * Copyright (C) 2012-2015, Focaltech Systems (R)，All Rights Reserved.
-* Copyright (C) 2018 XiaoMi, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
 *
 * File Name: Config_FT6X36.c
 *
@@ -217,7 +217,7 @@ void OnInit_FT6X36_BasicThreshold(char *strIniFile)
 	GetPrivateProfileString("Basic_Threshold","DeltaCbTest_Deviation_S6","12",str,strIniFile);
 	g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Deviation_S6 = atoi(str);
 
-	/////////////临界值
+	临界值
 	GetPrivateProfileString("Basic_Threshold","DeltaCbTest_Set_Critical","0",str,strIniFile);
 	g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Set_Critical = atoi(str);
 
@@ -258,6 +258,7 @@ void OnInit_FT6X36_BasicThreshold(char *strIniFile)
 	GetPrivateProfileString("Basic_Threshold","ChannelsDeviationTest_Deviation_S6","8",str,strIniFile);
 	g_stCfg_FT6X36_BasicThreshold.ChannelsDeviationTest_Deviation_S6 = atoi(str);
 
+	临界值
 	GetPrivateProfileString("Basic_Threshold","ChannelsDeviationTest_Set_Critical","0",str,strIniFile);
 	g_stCfg_FT6X36_BasicThreshold.ChannelsDeviationTest_Set_Critical = atoi(str);
 
@@ -297,7 +298,7 @@ void OnInit_FT6X36_BasicThreshold(char *strIniFile)
 	GetPrivateProfileString("Basic_Threshold","TwoSidesDeviationTest_Deviation_S6","5",str,strIniFile);
 	g_stCfg_FT6X36_BasicThreshold.TwoSidesDeviationTest_Deviation_S6 = atoi(str);
 
-	/////////////临界值
+	临界值
 	GetPrivateProfileString("Basic_Threshold","TwoSidesDeviationTest_Set_Critical","0",str,strIniFile);
 	g_stCfg_FT6X36_BasicThreshold.TwoSidesDeviationTest_Set_Critical = atoi(str);
 
@@ -409,7 +410,57 @@ void SetTestItem_FT6X36()
 
 	g_TestItemNum = 0;
 
-	if (g_stCfg_FT6X36_TestItem.FACTORY_ID_TEST == 1) {
+
+	/*value = g_stCfg_CommonCfg.Run_Mode;
+	if(value == 1 || value == 4 || value == 5)//Download
+	{
+		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_DOWNLOAD;
+		//g_stTestItem[0][g_TestItemNum].strItemName = g_strEnumTestItem_FT6X36[Code_FT6X36_DOWNLOAD];
+		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
+		g_stTestItem[0][g_TestItemNum].TestResult= RESULT_NULL;
+		g_TestItemNum++;
+	}
+	else if(value == 2 || value == 3 || value == 6)//Upgrade
+	{
+		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_UPGRADE;
+		//g_stTestItem[0][g_TestItemNum].strItemName = g_strEnumTestItem_FT6X36[Code_FT6X36_UPGRADE];
+		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
+		g_stTestItem[0][g_TestItemNum].TestResult= RESULT_NULL;
+		g_TestItemNum++;
+	}
+	else if(value == 8 || value == 9 || value == 10)//Upgrade
+	{
+		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_WRITE_CONFIG;
+		//g_stTestItem[0][g_TestItemNum].strItemName = g_strEnumTestItem_FT6X36[Code_FT6X36_WRITE_CONFIG];
+		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
+		g_stTestItem[0][g_TestItemNum].TestResult= RESULT_NULL;
+		g_TestItemNum++;
+	}
+	if(value == 5 || value == 6 || value == 8)//Only Download /Upgrade/write config
+	{
+		return;
+	}
+
+	if( g_stCfg_SiuBoard.bVDDTest )
+	{
+		g_stTestItem[0][g_TestItemNum].ItemCode = Code_VDD;
+		//g_stTestItem[0][g_TestItemNum].strItemName = g_strEnumSiuItem[Code_VDD];
+		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
+		g_stTestItem[0][g_TestItemNum].ItemType = Type_SiuItem;
+		g_TestItemNum++;
+	}
+	if( g_stCfg_SiuBoard.bIOVccTest )
+	{
+		g_stTestItem[0][g_TestItemNum].ItemCode = Code_IOVCC;
+		//g_stTestItem[0][g_TestItemNum].strItemName = g_strEnumSiuItem[Code_IOVCC];
+		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
+		g_stTestItem[0][g_TestItemNum].ItemType = Type_SiuItem;
+		g_TestItemNum++;
+	}*/
+
+
+	if (g_stCfg_FT6X36_TestItem.FACTORY_ID_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_FACTORY_ID_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -428,7 +479,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.FW_VERSION_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.FW_VERSION_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_FW_VERSION_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -437,7 +489,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.IC_VERSION_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.IC_VERSION_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_IC_VERSION_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -453,7 +506,8 @@ void SetTestItem_FT6X36()
 	g_TestItemNum++;
 
 
-	if (g_stCfg_FT6X36_TestItem.CHANNEL_NUM_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.CHANNEL_NUM_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_CHANNEL_NUM_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -462,7 +516,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.RAWDATA_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.RAWDATA_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_RAWDATA_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -471,7 +526,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.DIFFER_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.DIFFER_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_DIFFER_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -480,7 +536,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.DIFFER_TEST2 == 1) {
+	if (g_stCfg_FT6X36_TestItem.DIFFER_TEST2 == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_DIFFER_TEST2;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -489,7 +546,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.CB_DEVIATION_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.CB_DEVIATION_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_CB_DEVIATION_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -498,7 +556,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.FPC_SHORT_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.FPC_SHORT_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_FPC_SHORT_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -507,7 +566,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.FPC_OPEN_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.FPC_OPEN_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_FPC_OPEN_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -516,7 +576,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.CB_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.CB_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_CB_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -525,7 +586,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.DELTA_CB_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.DELTA_CB_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_DELTA_CB_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -534,7 +596,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.CHANNELS_DEVIATION_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.CHANNELS_DEVIATION_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_CHANNELS_DEVIATION_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -543,7 +606,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.TWO_SIDES_DEVIATION_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.TWO_SIDES_DEVIATION_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_TWO_SIDES_DEVIATION_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -552,7 +616,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.CHANNEL_SHORT_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.CHANNEL_SHORT_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_CHANNEL_SHORT_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -561,7 +626,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.SREF_OPEN_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.SREF_OPEN_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_SREF_OPEN_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -570,7 +636,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.NOISE_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.NOISE_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_NOISE_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -579,7 +646,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.WEAK_SHORT_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.WEAK_SHORT_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_WEAK_SHORT_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -588,7 +656,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.K1_DIFFER_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.K1_DIFFER_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_K1_DIFFER_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -597,7 +666,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.RESET_PIN_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.RESET_PIN_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_RESET_PIN_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -605,7 +675,8 @@ void SetTestItem_FT6X36()
 		g_TestItemNum++;
 	}
 
-	if (g_stCfg_FT6X36_TestItem.INT_PIN_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.INT_PIN_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_INT_PIN_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -614,7 +685,8 @@ void SetTestItem_FT6X36()
 	}
 
 
-	if (g_stCfg_FT6X36_TestItem.TE_TEST == 1) {
+	if (g_stCfg_FT6X36_TestItem.TE_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT6X36_TE_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;

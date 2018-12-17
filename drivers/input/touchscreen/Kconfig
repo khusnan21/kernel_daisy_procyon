@@ -1128,44 +1128,56 @@ config TOUCHSCREEN_MAXIM_STI
 source "drivers/input/touchscreen/focaltech_touch/Kconfig"
 
 config TOUCHSCREEN_FT5435
-	 tristate "FocalTech touchscreens"
-	 depends on I2C
-	 help
-	   Say Y here if you have a ft5435 touchscreen.
-	   Ft5435 controllers are multi touch controllers which can
-	   report 5 touches at a time.
+       tristate "FocalTech touchscreens"
+       depends on I2C
+       help
+         Say Y here if you have a ft5435 touchscreen.
+         Ft5435 controllers are multi touch controllers which can
+         report 5 touches at a time.
 
-	   If unsure, say N.
+         If unsure, say N.
 
-	   To compile this driver as a module, choose M here: the
-	   module will be called ft5435_ts.
+         To compile this driver as a module, choose M here: the
+         module will be called ft5435_ts.
 
 config TOUCHSCREEN_FT5446
-	 tristate "FocalTech touchscreens"
-	 depends on I2C
-	 help
-	   Say Y here if you have a ft5446 touchscreen.
-	   Ft5446 controllers are multi touch controllers which can
-	   report 10 touches at a time.
+       tristate "FocalTech touchscreens"
+       depends on I2C
+       help
+         Say Y here if you have a ft5446 touchscreen.
+         Ft5446 controllers are multi touch controllers which can
+         report 10 touches at a time.
 
-	   If unsure, say N.
+         If unsure, say N.
 
-	   To compile this driver as a module, choose M here: the
-	   module will be called ft5446_ts.
+         To compile this driver as a module, choose M here: the
+         module will be called ft5446_ts.
 
 config TOUCHSCREEN_GT917d
-	 tristate "Goodix touchscreens"
-	 depends on I2C
-	 help
-	   Say Y here if you have a GT917d touchscreen.
-	   GT917d controllers are multi touch controllers which can
-	   report 10 touches at a time.
+       tristate "Goodix touchscreens"
+       depends on I2C
+       help
+         Say Y here if you have a GT917d touchscreen.
+         GT917d controllers are multi touch controllers which can
+         report 10 touches at a time.
 
-	     If unsure, say N.
+         If unsure, say N.
 
-	     To compile this driver as a module, choose M here: the
-	     module will be called GT917d.
+         To compile this driver as a module, choose M here: the
+         module will be called GT917d.
 
+config TOUCHSCREEN_TD4310_E7
+       tristate "synaptics touchscreens"
+       depends on I2C
+       help
+         Say Y here if you have a ist3038c touchscreen.
+         Ft5x06 controllers are multi touch controllers which can
+         report 5 touches at a time.
+
+         If unsure, say N.
+
+         To compile this driver as a module, choose M here: the
+         module will be called ist3038c_ts.
 
 config TOUCHSCREEN_NT36672
 	bool "Novatek NT36672"
@@ -1176,6 +1188,19 @@ config TOUCHSCREEN_NT36672
 
 	  If unsure, say N.
 
+config TOUCHSCREEN_TD4310_LANSI_E7
+       tristate "synaptics touchscreens"
+       depends on I2C
+       help
+         Say Y here if you have a ist3038c touchscreen.
+         Ft5x06 controllers are multi touch controllers which can
+         report 5 touches at a time.
+
+         If unsure, say N.
+
+         To compile this driver as a module, choose M here: the
+         module will be called ist3038c_ts.
+
 config VITURALSAR
 	bool "Vitural Sar series"
 	depends on I2C
@@ -1184,7 +1209,7 @@ config VITURALSAR
 	  Gt9xx controllers are multi touch controllers which can
 	  report 5 touches at a time.
 
-	  If unsure, say N.
+          If unsure, say N.
 
 source "drivers/input/touchscreen/ft5446/Kconfig"
 source "drivers/input/touchscreen/gt917d/Kconfig"

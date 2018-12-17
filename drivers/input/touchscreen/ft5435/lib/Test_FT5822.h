@@ -22,8 +22,8 @@ int FT5822_get_test_data(char *pTestData);
 unsigned char FT5822_TestItem_EnterFactoryMode(void);
 unsigned char FT5822_TestItem_RawDataTest(bool *bTestResult);
 
-unsigned char FT5822_TestItem_SCapRawDataTest(bool*bTestResult);
-unsigned char FT5822_TestItem_SCapCbTest(bool*bTestResult);
+unsigned char FT5822_TestItem_SCapRawDataTest(bool *bTestResult);
+unsigned char FT5822_TestItem_SCapCbTest(bool *bTestResult);
 
 unsigned char FT5822_TestItem_UniformityTest(bool *bTestResult);
 

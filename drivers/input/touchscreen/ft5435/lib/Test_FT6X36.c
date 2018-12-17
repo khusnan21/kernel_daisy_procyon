@@ -1,6 +1,6 @@
 /************************************************************************
 * Copyright (C) 2012-2015, Focaltech Systems (R)，All Rights Reserved.
-* Copyright (C) 2018 XiaoMi, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
 *
 * File Name: Test_FT6X36.c
 *
@@ -12,6 +12,9 @@
 *
 ************************************************************************/
 
+/*******************************************************************************
+* Included header files
+*******************************************************************************/
 #include <linux/kernel.h>
 #include <linux/string.h>
 #include <linux/slab.h>
@@ -22,6 +25,9 @@
 #include "Config_FT6X36.h"
 
 
+/*******************************************************************************
+* Private constant and macro definitions using #define
+*******************************************************************************/
 #define IC_TEST_VERSION  "Test version: V1.0.0--2015-10-08, (sync version of FT_MultipleTest: V2.7.0.3--2015-07-13)"
 
 
@@ -43,23 +49,26 @@
 
 #define C6208_SCAN_ADDR 0x08
 
-#define C6X36_CHANNEL_NUM	0x0A
-#define C6X36_KEY_NUM		0x0B
+#define C6X36_CHANNEL_NUM	0x0A	读写(RW)	TP_Channel_Num		VA区通道个数 最大值为63
+#define C6X36_KEY_NUM		0x0B	读写(RW)	TP_Key_Num		虚拟按键独立通道个数 最大值为63
 
-#define C6X36_CB_ADDR_W 0x32/*0x32*/
-#define C6X36_CB_ADDR_R 0x33/*0x32*/
-#define C6X36_CB_BUF  0x39/*0x33*/
-#define C6X36_RAWDATA_ADDR	0x34/*0x34*/
+#define C6X36_CB_ADDR_W 0x32/*0x32*/	读写(RW)	CB_addr		普通模式CB--地址
+#define C6X36_CB_ADDR_R 0x33/*0x32*/	读写(RW)	CB_addr		普通模式CB--地址
+#define C6X36_CB_BUF  0x39/*0x33*/	读(RO)	CB_buf		一通道对应2字节，因此长度是 2*N
+#define C6X36_RAWDATA_ADDR	0x34/*0x34*/	读写(RW)	RawData_addr		Rawdata--地址
 #define C6X36_RAWDATA_BUF	0x35
 
-#define C6206_FACTORY_TEST_MODE			0xAE
+#define C6206_FACTORY_TEST_MODE			0xAE	：正常工厂模式,1：量产测试工厂模式1（使用单端+0级防水扫描）,2：量产测试工厂模式2（使用单端+不防水扫描）
 #define C6206_FACTORY_TEST_STATUS		0xAD
 
 #define MAX_SCAP_CHANNEL_NUM		144
 #define MAX_SCAP_KEY_NUM			8
 
+/*******************************************************************************
+* Private enumerations, structures and unions using typedef
+*******************************************************************************/
 enum WaterproofType
- {
+{
 	WT_NeedProofOnTest,
 	WT_NeedProofOffTest,
 	WT_NeedTxOnVal,
@@ -67,6 +76,10 @@ enum WaterproofType
 	WT_NeedTxOffVal,
 	WT_NeedRxOffVal,
 };
+/*******************************************************************************
+* Static variables
+*******************************************************************************/
+
 static int m_RawData[MAX_SCAP_CHANNEL_NUM] = {0};
 
 static unsigned char m_ucTempData[MAX_SCAP_CHANNEL_NUM*2] = {0};
@@ -79,17 +92,25 @@ static int m_DeltaCb_DifferData[MAX_SCAP_CHANNEL_NUM] = {0};
 
 
 static char g_pStoreAllData[1024*80] = {0};
-static char *g_pTmpBuff = NULL;
-static char *g_pStoreMsgArea = NULL;
-static int g_lenStoreMsgArea = 0;
-static char *g_pMsgAreaLine2 = NULL;
-static int g_lenMsgAreaLine2 = 0;
-static char *g_pStoreDataArea = NULL;
-static int g_lenStoreDataArea = 0;
-static unsigned char m_ucTestItemCode = 0;
-static int m_iStartLine = 0;
-static int m_iTestDataCount = 0;
+static char *g_pTmpBuff;
+static char *g_pStoreMsgArea;
+static int g_lenStoreMsgArea;
+static char *g_pMsgAreaLine2;
+static int g_lenMsgAreaLine2;
+static char *g_pStoreDataArea;
+static int g_lenStoreDataArea;
+static unsigned char m_ucTestItemCode;
+static int m_iStartLine;
+static int m_iTestDataCount;
 
+/*******************************************************************************
+* Global variable or extern global variabls/functions
+*******************************************************************************/
+
+
+/*******************************************************************************
+* Static function prototypes
+*******************************************************************************/
 
 static int StartScan(void);
 static unsigned char ReadRawData(unsigned char Freq, unsigned char LineNum, int ByteNum, int *pRevBuffer);
@@ -109,6 +130,13 @@ static void AllocateMemory(void);
 static void FreeMemory(void);
 static void ShowRawData(void);
 
+/************************************************************************
+* Name: FT6X36_StartTest
+* Brief:  Test entry. Determine which test item to test
+* Input: none
+* Output: none
+* Return: Test Result, PASS or FAIL
+***********************************************************************/
 boolean FT6X36_StartTest()
 {
 	bool bTestResult = true;
@@ -124,78 +152,120 @@ boolean FT6X36_StartTest()
 	if (0 == g_TestItemNum)
 		bTestResult = false;
 
-	for (iItemCount = 0; iItemCount < g_TestItemNum; iItemCount++) {
+	for (iItemCount = 0; iItemCount < g_TestItemNum; iItemCount++)
+	{
 		m_ucTestItemCode = g_stTestItem[ucDevice][iItemCount].ItemCode;
 
 
 		if (Code_FT6X36_ENTER_FACTORY_MODE == g_stTestItem[ucDevice][iItemCount].ItemCode
-			) {
+			)
+		{
 			ReCode = FT6X36_TestItem_EnterFactoryMode();
-			if (ERROR_CODE_OK != ReCode || (!bTempResult)) {
+			if (ERROR_CODE_OK != ReCode || (!bTempResult))
+			{
 				bTestResult = false;
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_NG;
 				break;
-			} else
+			}
+			else
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_PASS;
 		}
 
 
+		/*if(Code_FT6X36_CHANNEL_NUM_TEST == g_stTestItem[ucDevice][iItemCount].ItemCode
+		)
+		{
+		ReCode = FT6X36_TestItem_ChannelsTest(&bTempResult);
+		if(ERROR_CODE_OK != ReCode || (!bTempResult))
+		{
+		bTestResult = false;
+		}
+		}*/
+
 
 		if (Code_FT6X36_RAWDATA_TEST == g_stTestItem[ucDevice][iItemCount].ItemCode
-			) {
+			)
+		{
 			ReCode = FT6X36_TestItem_RawDataTest(&bTempResult);
-			if (ERROR_CODE_OK != ReCode || (!bTempResult)) {
+			if (ERROR_CODE_OK != ReCode || (!bTempResult))
+			{
 				bTestResult = false;
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_NG;
-			} else
+			}
+			else
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_PASS;
 		}
 
 
 
 		if (Code_FT6X36_CB_TEST == g_stTestItem[ucDevice][iItemCount].ItemCode
-			) {
+			)
+		{
 			ReCode = FT6X36_TestItem_CbTest(&bTempResult);
-			if (ERROR_CODE_OK != ReCode || (!bTempResult)) {
+			if (ERROR_CODE_OK != ReCode || (!bTempResult))
+			{
 				bTestResult = false;
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_NG;
-			} else
+			}
+			else
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_PASS;
 		}
 
 
 		if (Code_FT6X36_DELTA_CB_TEST == g_stTestItem[ucDevice][iItemCount].ItemCode
-			) {
+			)
+		{
 			ReCode = FT6X36_TestItem_DeltaCbTest(&bTempResult);
-			if (ERROR_CODE_OK != ReCode || (!bTempResult)) {
+			if (ERROR_CODE_OK != ReCode || (!bTempResult))
+			{
 				bTestResult = false;
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_NG;
-			} else
+			}
+			else
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_PASS;
 		}
 
 
 		if (Code_FT6X36_CHANNELS_DEVIATION_TEST == g_stTestItem[ucDevice][iItemCount].ItemCode
-			) {
+			)
+		{
 			ReCode = FT6X36_TestItem_ChannelsDeviationTest(&bTempResult);
-			if (ERROR_CODE_OK != ReCode || (!bTempResult)) {
+			if (ERROR_CODE_OK != ReCode || (!bTempResult))
+			{
 				bTestResult = false;
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_NG;
-			} else
+			}
+			else
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_PASS;
 		}
 
 
 		if (Code_FT6X36_TWO_SIDES_DEVIATION_TEST == g_stTestItem[ucDevice][iItemCount].ItemCode
-			) {
+			)
+		{
 			ReCode = FT6X36_TestItem_TwoSidesDeviationTest(&bTempResult);
-			if (ERROR_CODE_OK != ReCode || (!bTempResult)) {
+			if (ERROR_CODE_OK != ReCode || (!bTempResult))
+			{
 				bTestResult = false;
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_NG;
-			} else
+			}
+			else
 				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_PASS;
 		}
 
+
+		/*if(Code_FT6X36_NOISE_TEST == g_stTestItem[ucDevice][iItemCount].ItemCode
+			)
+		{
+			ReCode = FT6X36_TestItem_SCapRawDataTest(&bTempResult);
+			if(ERROR_CODE_OK != ReCode || (!bTempResult))
+			{
+				bTestResult = false;
+				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_NG;
+			}
+			else
+				g_stTestItem[ucDevice][iItemCount].TestResult = RESULT_PASS;
+		}*/
 
 	}
 
@@ -205,99 +275,170 @@ boolean FT6X36_StartTest()
 
 	return bTestResult;
 }
+/************************************************************************
+* Name: InitTest
+* Brief:  Init all param before test
+* Input: none
+* Output: none
+* Return: none
+***********************************************************************/
 static void InitTest(void)
 {
 	AllocateMemory();
 	InitStoreParamOfTestData();
 	printk("[focal] %s \n", IC_TEST_VERSION);
 }
+/************************************************************************
+* Name: FinishTest
+* Brief:  Init all param before test
+* Input: none
+* Output: none
+* Return: none
+***********************************************************************/
 static void FinishTest(void)
 {
 	MergeAllTestData();
 	FreeMemory();
 }
+/************************************************************************
+* Name: FT6X36_get_test_data
+* Brief:  get data of test result
+* Input: none
+* Output: pTestData, the returned buff
+* Return: the length of test data. if length > 0, got data;else ERR.
+***********************************************************************/
 int FT6X36_get_test_data(char *pTestData)
 {
-	if (NULL == pTestData) {
+	if (NULL == pTestData)
+	{
 		printk("[focal] %s pTestData == NULL \n", __func__);
-		return -1;
+		return -EPERM;
 	}
 	memcpy(pTestData, g_pStoreAllData, (g_lenStoreMsgArea+g_lenStoreDataArea));
 	return (g_lenStoreMsgArea+g_lenStoreDataArea);
 }
 
+/************************************************************************
+* Name: FT6X36_TestItem_EnterFactoryMode
+* Brief:  Check whether TP can enter Factory Mode, and do some thing
+* Input: none
+* Output: none
+* Return: Comm Code. Code = 0x00 is OK, else fail.
+***********************************************************************/
 unsigned char FT6X36_TestItem_EnterFactoryMode(void)
 {
 	unsigned char ReCode = ERROR_CODE_INVALID_PARAM;
-	int iRedo = 5;
+	int iRedo = 5;	如果不成功，重复进入5次
 	int i ;
 
 	SysDelay(150);
-	for (i = 1; i <= iRedo; i++) {
+	for (i = 1; i <= iRedo; i++)
+	{
 		ReCode = EnterFactory();
-		if (ERROR_CODE_OK != ReCode) {
+		if (ERROR_CODE_OK != ReCode)
+		{
 			printk("Failed to Enter factory mode...\n");
-			if (i < iRedo) {
+			if (i < iRedo)
+			{
 				SysDelay(50);
 				continue;
 			}
-		} else {
+		}
+		else
+		{
 			break;
 		}
 
 	}
 	SysDelay(300);
 
-	if (ReCode != ERROR_CODE_OK) {
+	if (ReCode != ERROR_CODE_OK)
+	{
 		return ReCode;
 	}
 
+	进工厂模式成功后，就读出通道数
 	ReCode = GetChannelNum();
 
 	return ReCode;
 }
 
+/************************************************************************
+* Name: GetPanelChannels(Same function name as FT_MultipleTest GetChannelNum)
+* Brief:  Get row of TP
+* Input: none
+* Output: pPanelChannels
+* Return: Comm Code. Code = 0x00 is OK, else fail.
+***********************************************************************/
 static unsigned char GetPanelChannels(unsigned char *pPanelChannels)
 {
 	return ReadReg(C6X36_CHANNEL_NUM, pPanelChannels);
 }
 
+/************************************************************************
+* Name: GetPanelKeys(Same function name as FT_MultipleTest GetKeyNum)
+* Brief:  get column of TP
+* Input: none
+* Output: pPanelKeys
+* Return: Comm Code. Code = 0x00 is OK, else fail.
+***********************************************************************/
 static unsigned char GetPanelKeys(unsigned char *pPanelKeys)
 {
 	return ReadReg(C6X36_KEY_NUM, pPanelKeys);
 }
+/************************************************************************
+* Name: StartScan(Same function name as FT_MultipleTest)
+* Brief:  Scan TP, do it before read Raw Data
+* Input: none
+* Output: none
+* Return: Comm Code. Code = 0x00 is OK, else fail.
+***********************************************************************/
 static int StartScan(void)
 {
 	unsigned char RegVal = 0x01;
-		unsigned int times = 0;
-		const unsigned int MaxTimes = 500/*20*/;
-		unsigned char ReCode = ERROR_CODE_COMM_ERROR;
+    	unsigned int times = 0;
+    	const unsigned int MaxTimes = 500/*20*/;	最长等待160ms
+    	unsigned char ReCode = ERROR_CODE_COMM_ERROR;
 
-		ReCode = ReadReg(C6208_SCAN_ADDR, &RegVal);
-		if (ReCode == ERROR_CODE_OK) {
-			RegVal = 0x01;
-			ReCode = WriteReg(C6208_SCAN_ADDR, RegVal);
-			if (ReCode == ERROR_CODE_OK) {
-				while(times++ < MaxTimes) {
-					SysDelay(8);
-					ReCode = ReadReg(C6208_SCAN_ADDR, &RegVal);
-					if (ReCode == ERROR_CODE_OK) {
-						if (RegVal == 0) {
+    	ReCode = ReadReg(C6208_SCAN_ADDR, &RegVal);
+    	if (ReCode == ERROR_CODE_OK)
+    	{
+    		RegVal = 0x01;		最高位置1，启动扫描
+    		ReCode = WriteReg(C6208_SCAN_ADDR, RegVal);
+    		if (ReCode == ERROR_CODE_OK)
+    		{
+    			while(times++ < MaxTimes)		等待扫描完成
+    			{
+    				SysDelay(8);
+    				ReCode = ReadReg(C6208_SCAN_ADDR, &RegVal);
+    				if (ReCode == ERROR_CODE_OK)
+    				{
+    					if (RegVal == 0)
+    					{
 
-							break;
-						}
-					} else {
-						break;
-					}
-				}
-				if (times < MaxTimes)	ReCode = ERROR_CODE_OK;
-				else ReCode = ERROR_CODE_COMM_ERROR;
-			}
-		}
+    						break;
+    					}
+    				}
+    				else
+    				{
+    					break;
+    				}
+    			}
+    			if (times < MaxTimes)	ReCode = ERROR_CODE_OK;
+    			else ReCode = ERROR_CODE_COMM_ERROR;
+    		}
+    	}
 
-		return ReCode;
+    	return ReCode;
 
 }
+/************************************************************************
+* Name: ReadRawData(Same function name as FT_MultipleTest)
+* Brief:  read Raw Data
+* Input: Freq(No longer used, reserved), LineNum, ByteNum
+* Output: pRevBuffer
+* Return: Comm Code. Code = 0x00 is OK, else fail.
+***********************************************************************/
 unsigned char ReadRawData(unsigned char Freq, unsigned char LineNum, int ByteNum, int *pRevBuffer)
 {
 	unsigned char ReCode = ERROR_CODE_COMM_ERROR;
@@ -313,8 +454,10 @@ unsigned char ReadRawData(unsigned char Freq, unsigned char LineNum, int ByteNum
 	I2C_wBuffer[1] = 0;
 	ReCode = Comm_Base_IIC_IO(I2C_wBuffer, 2, NULL, 0);
 
-	if ((ReCode == ERROR_CODE_OK)) {
-		if (ReCode == ERROR_CODE_OK) {
+	if ((ReCode == ERROR_CODE_OK))
+	{
+		if (ReCode == ERROR_CODE_OK)
+		{
 			I2C_wBuffer[0] = C6X36_RAWDATA_BUF;
 
 			ReCode = Comm_Base_IIC_IO(I2C_wBuffer, 1, m_ucTempData, BytesNumInTestMode1);
@@ -323,8 +466,10 @@ unsigned char ReadRawData(unsigned char Freq, unsigned char LineNum, int ByteNum
 	}
 
 
-	if (ReCode == ERROR_CODE_OK) {
-		for (i = 0; i<(ByteNum>>1); i++) {
+	if (ReCode == ERROR_CODE_OK)
+	{
+		for (i = 0; i < (ByteNum>>1); i++)
+		{
 			pRevBuffer[i] = (m_ucTempData[i<<1]<<8)+m_ucTempData[(i<<1)+1];
 		}
 	}
@@ -334,6 +479,13 @@ unsigned char ReadRawData(unsigned char Freq, unsigned char LineNum, int ByteNum
 }
 
 
+/************************************************************************
+* Name: AllocateMemory
+* Brief:  Allocate pointer Memory
+* Input: none
+* Output: none
+* Return: none
+***********************************************************************/
 static void AllocateMemory(void)
 {
 
@@ -346,10 +498,21 @@ static void AllocateMemory(void)
 	g_pStoreDataArea = NULL;
 	if (NULL == g_pStoreDataArea)
 		g_pStoreDataArea = kmalloc(1024*80, GFP_ATOMIC);
+	/*g_pStoreAllData =NULL;
+	if(NULL == g_pStoreAllData)
+		g_pStoreAllData = kmalloc(1024*8, GFP_ATOMIC);
+	g_pTmpBuff =NULL;*/
 	if (NULL == g_pTmpBuff)
 		g_pTmpBuff = kmalloc(1024*16, GFP_ATOMIC);
 
 }
+/************************************************************************
+* Name: FreeMemory
+* Brief:  Release pointer memory
+* Input: none
+* Output: none
+* Return: none
+***********************************************************************/
 static void FreeMemory(void)
 {
 
@@ -362,10 +525,20 @@ static void FreeMemory(void)
 	if (NULL != g_pStoreDataArea)
 		kfree(g_pStoreDataArea);
 
+	/*if(NULL == g_pStoreAllData)
+		kfree(g_pStoreAllData);*/
+
 	if (NULL != g_pTmpBuff)
 		kfree(g_pTmpBuff);
 }
 
+/************************************************************************
+* Name: InitStoreParamOfTestData
+* Brief:  Init store param of test data
+* Input: none
+* Output: none
+* Return: none
+***********************************************************************/
 static void InitStoreParamOfTestData(void)
 {
 
@@ -384,6 +557,13 @@ static void InitStoreParamOfTestData(void)
 
 	m_iTestDataCount = 0;
 }
+/************************************************************************
+* Name: MergeAllTestData
+* Brief:  Merge All Data of test result
+* Input: none
+* Output: none
+* Return: none
+***********************************************************************/
 static void MergeAllTestData(void)
 {
 	int iLen = 0;
@@ -402,11 +582,12 @@ static void MergeAllTestData(void)
 	memcpy(g_pStoreMsgArea+g_lenStoreMsgArea, g_pTmpBuff, iLen);
 	g_lenStoreMsgArea+=iLen;
 
-	/
+
 	memcpy(g_pStoreAllData, g_pStoreMsgArea, g_lenStoreMsgArea);
 
-	/
-	if (0!= g_lenStoreDataArea) {
+
+	if (0 != g_lenStoreDataArea)
+	{
 		memcpy(g_pStoreAllData+g_lenStoreMsgArea, g_pStoreDataArea, g_lenStoreDataArea);
 	}
 
@@ -414,6 +595,13 @@ static void MergeAllTestData(void)
 }
 
 
+/************************************************************************
+* Name: Save_Test_Data
+* Brief:  Storage format of test data
+* Input: int iData[TX_NUM_MAX][RX_NUM_MAX], int iArrayIndex, unsigned char Row, unsigned char Col, unsigned char ItemCount
+* Output: none
+* Return: none
+***********************************************************************/
 static void Save_Test_Data(int iData[MAX_SCAP_CHANNEL_NUM], int iArrayIndex, unsigned char Row, unsigned char Col, unsigned char ItemCount)
 {
 	int iLen = 0;
@@ -429,8 +617,10 @@ static void Save_Test_Data(int iData[MAX_SCAP_CHANNEL_NUM], int iArrayIndex, uns
 	m_iTestDataCount++;
 
 
-	for (i = 0+iArrayIndex; i < Row+iArrayIndex; i++) {
-		for (j = 0; j < Col; j++) {
+	for (i = 0+iArrayIndex; i < Row+iArrayIndex; i++)
+	{
+		for (j = 0; j < Col; j++)
+		{
 			if (j == (Col -1))
 				iLen = sprintf(g_pTmpBuff,"%d, \n", iData[j]);
 			else
@@ -443,6 +633,13 @@ static void Save_Test_Data(int iData[MAX_SCAP_CHANNEL_NUM], int iArrayIndex, uns
 
 }
 
+/************************************************************************
+* Name: GetChannelNum
+* Brief:  Get Channel Num(Tx and Rx)
+* Input: none
+* Output: none
+* Return: Comm Code. Code = 0x00 is OK, else fail.
+***********************************************************************/
 static unsigned char GetChannelNum(void)
 {
 	unsigned char ReCode;
@@ -450,18 +647,36 @@ static unsigned char GetChannelNum(void)
 
 
 	ReCode = GetPanelChannels(rBuffer);
-	if (ReCode == ERROR_CODE_OK) {
+	if (ReCode == ERROR_CODE_OK)
+	{
 		g_ScreenSetParam.iChannelsNum = rBuffer[0];
-	} else {
+		/*if(g_ScreenSetParam.iTxNum > g_ScreenSetParam.iUsedMaxTxNum)
+		{
+			printk("Failed to get Tx number, Get num = %d, UsedMaxNum = %d\n",
+				g_ScreenSetParam.iTxNum, g_ScreenSetParam.iUsedMaxTxNum);
+			return ERROR_CODE_INVALID_PARAM;
+		}*/
+	}
+	else
+	{
 		printk("Failed to get channel number\n");
 	}
 
 
 
 	ReCode = GetPanelKeys(rBuffer);
-	if (ReCode == ERROR_CODE_OK) {
+	if (ReCode == ERROR_CODE_OK)
+	{
 		g_ScreenSetParam.iKeyNum = rBuffer[0];
-	} else {
+		/*if(g_ScreenSetParam.iRxNum > g_ScreenSetParam.iUsedMaxRxNum)
+		{
+			printk("Failed to get Rx number, Get num = %d, UsedMaxNum = %d\n",
+				g_ScreenSetParam.iRxNum, g_ScreenSetParam.iUsedMaxRxNum);
+			return ERROR_CODE_INVALID_PARAM;
+		}*/
+	}
+	else
+	{
 		printk("Failed to get Rx number\n");
 	}
 
@@ -469,6 +684,13 @@ static unsigned char GetChannelNum(void)
 
 }
 
+/************************************************************************
+* Name: GetRawData
+* Brief:  get panel rawdata by read rawdata function
+* Input: none
+* Output: none
+* Return: Comm Code. Code = 0x00 is OK, else fail.
+***********************************************************************/
 unsigned char GetRawData(void)
 {
 
@@ -478,15 +700,18 @@ unsigned char GetRawData(void)
 
 
 	ReCode = EnterFactory();
-	if (ERROR_CODE_OK != ReCode) {
+	if (ERROR_CODE_OK != ReCode)
+	{
 		printk("Failed to Enter Factory Mode...\n");
 		return ReCode;
 	}
 
 
-	if (0 == (g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum)) {
+	if (0 == (g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum))
+	{
 		ReCode = GetChannelNum();
-		if (ERROR_CODE_OK != ReCode) {
+		if (ERROR_CODE_OK != ReCode)
+		{
 			printk("Error Channel Num...\n");
 			return ERROR_CODE_INVALID_PARAM;
 		}
@@ -495,7 +720,8 @@ unsigned char GetRawData(void)
 
 	printk("Start Scan ...\n");
 	ReCode = StartScan();
-	if (ERROR_CODE_OK != ReCode) {
+	if (ERROR_CODE_OK != ReCode)
+	{
 		printk("Failed to Scan ...\n");
 		return ReCode;
 	}
@@ -508,7 +734,8 @@ unsigned char GetRawData(void)
 
 
 	ReCode = ReadRawData(3, 0, readlen * 2, m_RawData);
-	if (ReCode != ERROR_CODE_OK) {
+	if (ReCode != ERROR_CODE_OK)
+	{
 		printk("Failed to Read RawData...\n");
 		return ReCode;
 	}
@@ -517,24 +744,40 @@ unsigned char GetRawData(void)
 
 }
 
+/************************************************************************
+* Name: ShowRawData
+* Brief:  Show RawData
+* Input: none
+* Output: none
+* Return: none.
+***********************************************************************/
 static void ShowRawData(void)
 {
 	int iChannelsNum = 0, iKeyNum = 0;
 
 
 	printk("\nChannels:  ");
-	for (iChannelsNum = 0; iChannelsNum < g_ScreenSetParam.iChannelsNum; iChannelsNum++) {
+	for (iChannelsNum = 0; iChannelsNum < g_ScreenSetParam.iChannelsNum; iChannelsNum++)
+	{
 		printk("%5d    ", m_RawData[iChannelsNum]);
 	}
 
 	printk("\nKeys:  ");
-	for (iKeyNum = 0; iKeyNum < g_ScreenSetParam.iKeyNum; iKeyNum++) {
+	for (iKeyNum = 0; iKeyNum < g_ScreenSetParam.iKeyNum; iKeyNum++)
+	{
 		printk("%5d    ", m_RawData[g_ScreenSetParam.iChannelsNum+iKeyNum]);
 	}
 
 	printk("\n\n\n\n");
 }
 
+/************************************************************************
+* Name: FT6X36_TestItem_RawDataTest
+* Brief:  TestItem: RawDataTest. Check if SCAP RawData is within the range.
+* Input: none
+* Output: bTestResult, PASS or FAIL
+* Return: Comm Code. Code = 0x00 is OK, else fail.
+***********************************************************************/
 unsigned char FT6X36_TestItem_RawDataTest(bool *bTestResult)
 {
 	int i = 0;
@@ -551,7 +794,8 @@ unsigned char FT6X36_TestItem_RawDataTest(bool *bTestResult)
 
 	printk("\r\n\r\n==============================Test Item: -------- RawData Test \r\n");
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		ReCode = WriteReg(C6206_FACTORY_TEST_MODE, Proof_Normal);
 		if (ERROR_CODE_OK == ReCode)
 			ReCode = StartScan();
@@ -560,24 +804,30 @@ unsigned char FT6X36_TestItem_RawDataTest(bool *bTestResult)
 
 	ReCode = GetRawData();
 
-	if (ReCode == ERROR_CODE_OK) {
+	if (ReCode == ERROR_CODE_OK) 读取RawData和计算Differ值
+	{
 		printk("\r\n//======= Test Data:  ");
 		ShowRawData();
-	} else {
+	}
+	else
+	{
 		printk("\r\nRawData Test is Error. Failed to get Raw Data!!");
-		btmpresult = false;
+		btmpresult = false;无法获取RawData，也算是NG
 		goto TEST_END;
 	}
 
+	判断超过范围的rawData
 	iNgNum = 0;
 	iMax = m_RawData[0];
 	iMin = m_RawData[0];
 	iAvg = 0;
 
-	for (i = 0; i < g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum; i++) {
-		RawDataMin = g_stCfg_SCap_DetailThreshold.RawDataTest_Min[i];
-		RawDataMax = g_stCfg_SCap_DetailThreshold.RawDataTest_Max[i];
-		if (m_RawData[i] < RawDataMin || m_RawData[i] > RawDataMax) {
+	for (i = 0; i < g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum; i++)
+	{
+		RawDataMin = g_stCfg_SCap_DetailThreshold.RawDataTest_Min[i];详细阈值
+		RawDataMax = g_stCfg_SCap_DetailThreshold.RawDataTest_Max[i];详细阈值
+		if (m_RawData[i] < RawDataMin || m_RawData[i] > RawDataMax)
+		{
 			btmpresult = false;
 
 			if (iNgNum == 0) printk("\r\n//======= NG Data: \r\n");
@@ -586,13 +836,15 @@ unsigned char FT6X36_TestItem_RawDataTest(bool *bTestResult)
 				printk("Ch_%02d: %d Set_Range=(%d, %d) ,	", i+1, m_RawData[i], RawDataMin, RawDataMax);
 			else
 				printk("Key_%d: %d Set_Range=(%d, %d) ,	", i+1 - g_ScreenSetParam.iChannelsNum, m_RawData[i], RawDataMin, RawDataMax);
-			if (iNgNum % 6 == 0) {
+			if (iNgNum % 6 == 0)
+			{
 				printk("\r\n");
 			}
 
 			iNgNum++;
 		}
 
+		计算最大最小平均值
 		iAvg += m_RawData[i];
 		if (iMax < m_RawData[i])iMax = m_RawData[i];
 		if (iMin > m_RawData[i])iMin = m_RawData[i];
@@ -602,20 +854,31 @@ unsigned char FT6X36_TestItem_RawDataTest(bool *bTestResult)
 	iAvg /= g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum;
 	printk("\r\n\r\n// Max Raw Value: %d, Min Raw Value: %d, Deviation Value: %d, Average Value: %d", iMax, iMin, iMax - iMin, iAvg);
 
+	收集测试数据，存入CSV文件
 
 	Save_Test_Data(m_RawData, 0, 1, g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum, 1);
 
 TEST_END:
-	if (btmpresult) {
+	if (btmpresult)
+	{
 		* bTestResult = true;
 		printk("\r\n\r\n//RawData Test is OK!\r\n");
-	} else {
+	}
+	else
+	{
 		* bTestResult = false;
 		printk("\r\n\r\n//RawData Test is NG!\r\n");
 	}
 	return ReCode;
 }
 
+/************************************************************************
+* Name: FT6X36_TestItem_CbTest
+* Brief:  TestItem: CB Test. Check if SCAP CB is within the range.
+* Input: none
+* Output: bTestResult, PASS or FAIL
+* Return: Comm Code. Code = 0x00 is OK, else fail.
+***********************************************************************/
 unsigned char FT6X36_TestItem_CbTest(bool *bTestResult)
 {
 	int readlen = 0;
@@ -644,34 +907,58 @@ unsigned char FT6X36_TestItem_CbTest(bool *bTestResult)
 
 	ReCode = ReadReg(C6206_FACTORY_TEST_MODE, &chOldMode);
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		ReCode = WriteReg(C6206_FACTORY_TEST_MODE, Proof_NoWaterProof);
 		if (ERROR_CODE_OK == ReCode)
 			ReCode = StartScan();
 		if (ERROR_CODE_OK == ReCode)break;
 	}
 
-	if ((ERROR_CODE_OK != ReCode)/* || (1 != WaterProofResult)*/) {
+	if ((ERROR_CODE_OK != ReCode)/* || (1 != WaterProofResult)*/)
+	{
 		btmpresult = false;
 		printk("\r\n\r\n//=========  CB test Failed!");
-	} else {
+	}
+	else
+	{
 		printk("\r\n\r\nGet Proof_NoWaterProof CB Data...");
 
 
+		防水CB
 		I2C_wBuffer[0] = 0x39;
 		ReCode = WriteReg(0x33, 0);
 		ReCode = Comm_Base_IIC_IO(I2C_wBuffer, 1, pReadData, readlen * 2);
 
-		for (i = 0; i < readlen; i++) {
+		for (i = 0; i < readlen; i++)
+		{
 			m_TempCbData[i] = (unsigned short)(pReadData[i*2] << 8 | pReadData[i*2+1]);
 
+			/*for(int j = 0; j < 2; j++)//若获取值为0，再重复获取3次
+			{
+				if(m_TempCbData[i] == 0)
+				{
+					SysDelay(20);
+					ReCode = theDevice.m_cHidDev[m_NumDevice]->GetCB( &m_TempCbData[i], i);
+				}
+				else
+				{
+					break;
+				}
+			}*/
 
-			if (i == 0) {
+
+			if (i == 0)
+			{
 				printk("\r\n\r\n//======= CB Data: ");
 				printk("\r\nLeft Channel:	");
-			} else if (i * 2 == g_ScreenSetParam.iChannelsNum) {
+			}
+			else if (i * 2 == g_ScreenSetParam.iChannelsNum)
+			{
 				printk("\r\nRight Channel:	");
-			} else if (i ==  g_ScreenSetParam.iChannelsNum) {
+			}
+			else if (i ==  g_ScreenSetParam.iChannelsNum)
+			{
 				printk("\r\nKey:		");
 			}
 			printk("%3d	", m_TempCbData[i]);
@@ -680,43 +967,68 @@ unsigned char FT6X36_TestItem_CbTest(bool *bTestResult)
 	}
 	printk("\r\n\r\n");
 
+	单端防水
 	printk("Proof_Level0 CB Test...\r\n");
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		ReCode = WriteReg(C6206_FACTORY_TEST_MODE, Proof_Level0);
 		if (ERROR_CODE_OK == ReCode)
 			ReCode = StartScan();
 		if (ERROR_CODE_OK == ReCode)break;
 	}
-	if ((ERROR_CODE_OK != ReCode)/* || (1 != WaterProofResult)*/) {
+	if ((ERROR_CODE_OK != ReCode)/* || (1 != WaterProofResult)*/)
+	{
 		btmpresult = false;
 		printk("\r\n\r\n//========= CB test Failed!");
-	} else {
+	}
+	else
+	{
 		printk("\r\n\r\nGet Proof_Level0 CB Data...");
 
+
+
+		防水CB
 		I2C_wBuffer[0] = 0x39;
 		ReCode = WriteReg(0x33, 0);
 		ReCode = Comm_Base_IIC_IO(I2C_wBuffer, 1, pReadData, readlen * 2);
 
-		for (i = 0; i < readlen; i++) {
+		for (i = 0; i < readlen; i++)
+		{
 			m_CbData[i] = (unsigned short)(pReadData[i*2] << 8 | pReadData[i*2+1]);
 
 
+			/*for(int j = 0; j < 2; j++)//若获取值为0，再重复获取3次
+			{
+				if(m_CbData[i] == 0)
+				{
+					SysDelay(20);
+					ReCode = theDevice.m_cHidDev[m_NumDevice]->GetCB( &m_CbData[i], i );
+				}
+				else
+				{
+					break;
+				}
+			}*/
 		}
 
 		ReCode = WriteReg(C6206_FACTORY_TEST_MODE, chOldMode);
 
+		判断是否超出阈值
 		iNgNum = 0;
 		iMax = m_TempCbData[0];
 		iMin = m_TempCbData[0];
 		iAvg = 0;
 
-		for (i = 0; i < g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum; i++) {
+		for (i = 0; i < g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum; i++)
+		{
 
-			iCbMin = g_stCfg_SCap_DetailThreshold.CbTest_Min[i];
-			iCbMax = g_stCfg_SCap_DetailThreshold.CbTest_Max[i];
+			iCbMin = g_stCfg_SCap_DetailThreshold.CbTest_Min[i];详细阈值
+			iCbMax = g_stCfg_SCap_DetailThreshold.CbTest_Max[i];详细阈值
 
-			if (m_TempCbData[i] < iCbMin || m_TempCbData[i] > iCbMax) {
-				if (iNgNum == 0) {
+			if (m_TempCbData[i] < iCbMin || m_TempCbData[i] > iCbMax)
+			{
+				if (iNgNum == 0)
+				{
 					printk("\r\n//======= NG Data: \r\n");
 				}
 				btmpresult = false;
@@ -724,13 +1036,15 @@ unsigned char FT6X36_TestItem_CbTest(bool *bTestResult)
 					printk("Ch_%02d: %d Set_Range=(%d, %d) ,	", i+1, m_TempCbData[i], iCbMin, iCbMax);
 				else
 					printk("Key_%d: %d Set_Range=(%d, %d),	", i+1 - g_ScreenSetParam.iChannelsNum, m_TempCbData[i], iCbMin, iCbMax);
-				if (iNgNum % 6 == 0) {
+				if (iNgNum % 6 == 0)
+				{
 					printk("\r\n");
 				}
 
 				iNgNum++;
 			}
 
+			计算最大最小平均值
 			iAvg += m_TempCbData[i];
 			if (iMax < m_TempCbData[i])iMax = m_TempCbData[i];
 			if (iMin > m_TempCbData[i])iMin = m_TempCbData[i];
@@ -740,29 +1054,43 @@ unsigned char FT6X36_TestItem_CbTest(bool *bTestResult)
 		iAvg /= g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum;
 		printk("\r\n\r\n// Max CB Value: %d, Min CB Value: %d, Deviation Value: %d, Average Value: %d", iMax, iMin, iMax - iMin, iAvg);
 
-		if (btmpresult) {
+		if (btmpresult)
+		{
 			printk("\r\n\r\n//CB Test is OK!\r\n");
 			* bTestResult = 1;
-		} else {
+		}
+		else
+		{
 			printk("\r\n\r\n//CB Test is NG!\r\n");
 			* bTestResult = 0;
 		}
 	}
+	收集测试数据，存入CSV文件
 
 	Save_Test_Data(m_TempCbData, 0, 1, g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum, 1);
 
+	收集测试数据，存入CSV文件
+	收集Ci Data，存入CSV文件
 
 
 	return ReCode;
 
 }
 
+/************************************************************************
+* Name: FT6X36_TestItem_DeltaCbTest
+* Brief:  TestItem: Delta CB Test. Check if SCAP Delta CB is within the range.
+* Input: none
+* Output: bTestResult, PASS or FAIL
+* Return: Comm Code. Code = 0x00 is OK, else fail.
+***********************************************************************/
 unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 {
 	bool btmpresult = true;
 	int readlen = g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum;
 	int i = 0;
 
+	最大Delta_Ci和最小Delta_Ci差值小于预设值
 	int Delta_Ci_Differ = g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Deviation_S1;
 	int Delta_Ci_Differ_S2 = g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Deviation_S2;
 	int Delta_Ci_Differ_S3 = g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Deviation_S3;
@@ -804,14 +1132,20 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 
 	printk("\r\n\r\n==============================Test Item: -------- Delta CB Test ");
 
-	for (i = 0; i < readlen; i++) {
+	for (i = 0; i < readlen; i++)
+	{
 		m_DeltaCbData[i] = m_TempCbData[i] - m_CbData[i];
-		if (i == 0) {
+		if (i == 0)
+		{
 			printk("\r\n\r\n//======= Delta CB Data: ");
 			printk("\r\nLeft Channel:	");
-		} else if (i * 2 == g_ScreenSetParam.iChannelsNum) {
+		}
+		else if (i * 2 == g_ScreenSetParam.iChannelsNum)
+		{
 			printk("\r\nRight Channel:	");
-		} else if (i ==  g_ScreenSetParam.iChannelsNum) {
+		}
+		else if (i ==  g_ScreenSetParam.iChannelsNum)
+		{
 			printk("\r\nKey:		");
 		}
 	       printk("%3d	", m_DeltaCbData[i]);
@@ -820,21 +1154,28 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 	printk("\r\n\r\n");
 
 
-	for (i = 0; i < readlen; i++) {
+	for (i = 0; i < readlen; i++)
+	{
 		m_DeltaCb_DifferData[i] = m_DeltaCbData[i] - g_stCfg_SCap_DetailThreshold.DeltaCbTest_Base[i];
 
-		if (i == 0) {
+		if (i == 0)
+		{
 			printk("\r\n\r\n//======= Differ Data of Delta CB: ");
 			printk("\r\nLeft Channel:	");
-		} else if (i * 2 == g_ScreenSetParam.iChannelsNum) {
+		}
+		else if (i * 2 == g_ScreenSetParam.iChannelsNum)
+		{
 			printk("\r\nRight Channel:	");
-		} else if (i ==  g_ScreenSetParam.iChannelsNum) {
+		}
+		else if (i ==  g_ScreenSetParam.iChannelsNum)
+		{
 			printk("\r\nKey:		");
 		}
 		printk("%3d	", m_DeltaCb_DifferData[i]);
 	}
 	printk("\r\n\r\n");
 
+	最大Delta_Ci和最小Delta_Ci差值小于预设值
 	Delta_Ci_Differ = g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Deviation_S1;
 	Delta_Ci_Differ_S2 = g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Deviation_S2;
 	Delta_Ci_Differ_S3 = g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Deviation_S3;
@@ -873,69 +1214,88 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 	Sort1Min = Sort2Min = Sort3Min = Sort4Min = Sort5Min  = Sort6Min = 1000;
 	Sort1Max = Sort2Max = Sort3Max = Sort4Max = Sort5Max = Sort6Max = -1000;
 
-	for (i = 0; i < g_ScreenSetParam.iChannelsNum/*readlen*/; i++) {
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 1) {
+	for (i = 0; i < g_ScreenSetParam.iChannelsNum/*readlen*/; i++)
+	{
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 1)
+		{
 			bUseSort1 = true;
-			if (m_DeltaCb_DifferData[i] < Sort1Min) {
+			if (m_DeltaCb_DifferData[i] < Sort1Min)
+			{
 				Sort1Min = m_DeltaCb_DifferData[i];
 				Sort1Min_ChNum = i;
 			}
-			if (m_DeltaCb_DifferData[i] > Sort1Max) {
+			if (m_DeltaCb_DifferData[i] > Sort1Max)
+			{
 				Sort1Max = m_DeltaCb_DifferData[i];
 				Sort1Max_ChNum = i;
 			}
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 2) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 2)
+		{
 			bUseSort2 = true;
-			if (m_DeltaCb_DifferData[i] < Sort2Min) {
+			if (m_DeltaCb_DifferData[i] < Sort2Min)
+			{
 				Sort2Min = m_DeltaCb_DifferData[i];
 				Sort2Min_ChNum = i;
 			}
-			if (m_DeltaCb_DifferData[i] > Sort2Max) {
+			if (m_DeltaCb_DifferData[i] > Sort2Max)
+			{
 				Sort2Max = m_DeltaCb_DifferData[i];
 				Sort2Max_ChNum = i;
 			}
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 3) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 3)
+		{
 			bUseSort3 = true;
-			if (m_DeltaCb_DifferData[i] < Sort3Min) {
+			if (m_DeltaCb_DifferData[i] < Sort3Min)
+			{
 				Sort3Min = m_DeltaCb_DifferData[i];
 				Sort3Min_ChNum = i;
 			}
-			if (m_DeltaCb_DifferData[i] > Sort3Max) {
+			if (m_DeltaCb_DifferData[i] > Sort3Max)
+			{
 				Sort3Max = m_DeltaCb_DifferData[i];
 				Sort3Max_ChNum = i;
 			}
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 4) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 4)
+		{
 			bUseSort4 = true;
-			if (m_DeltaCb_DifferData[i] < Sort4Min) {
+			if (m_DeltaCb_DifferData[i] < Sort4Min)
+			{
 				Sort4Min = m_DeltaCb_DifferData[i];
 				Sort4Min_ChNum = i;
 			}
-			if (m_DeltaCb_DifferData[i] > Sort4Max) {
+			if (m_DeltaCb_DifferData[i] > Sort4Max)
+			{
 				Sort4Max = m_DeltaCb_DifferData[i];
 				Sort4Max_ChNum = i;
 			}
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 5) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 5)
+		{
 			bUseSort5 = true;
-			if (m_DeltaCb_DifferData[i] < Sort5Min) {
+			if (m_DeltaCb_DifferData[i] < Sort5Min)
+			{
 				Sort5Min = m_DeltaCb_DifferData[i];
 				Sort5Min_ChNum = i;
 			}
-			if (m_DeltaCb_DifferData[i] > Sort5Max) {
+			if (m_DeltaCb_DifferData[i] > Sort5Max)
+			{
 				Sort5Max = m_DeltaCb_DifferData[i];
 				Sort5Max_ChNum = i;
 			}
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 6) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 6)
+		{
 			bUseSort6 = true;
-			if (m_DeltaCb_DifferData[i] < Sort6Min) {
+			if (m_DeltaCb_DifferData[i] < Sort6Min)
+			{
 				Sort6Min = m_DeltaCb_DifferData[i];
 				Sort6Min_ChNum = i;
 			}
-			if (m_DeltaCb_DifferData[i] > Sort6Max) {
+			if (m_DeltaCb_DifferData[i] > Sort6Max)
+			{
 				Sort6Max = m_DeltaCb_DifferData[i];
 				Sort6Max_ChNum = i;
 			}
@@ -943,12 +1303,18 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 
 
 	}
-	if (bUseSort1) {
-		if (Delta_Ci_Differ <= Sort1Max - Sort1Min) {
-			if (bUseCriticalValue) {
-				if (Sort1Max - Sort1Min >= Critical_Delta_S1) {
+	if (bUseSort1)
+	{
+		if (Delta_Ci_Differ <= Sort1Max - Sort1Min)
+		{
+			if (bUseCriticalValue)
+			{
+				if (Sort1Max - Sort1Min >= Critical_Delta_S1)
+				{
 					btmpresult = false;
-				} else {
+				}
+				else
+				{
 					if (focal_abs(Sort1Max) > focal_abs(Sort1Min))
 						Num = Sort1Max_ChNum;
 					else
@@ -959,25 +1325,35 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 				}
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Critical Deviation of Sort1: %d",
 					Sort1Max, Sort1Min, Sort1Max - Sort1Min, Critical_Delta_S1);
-			} else {
+			}
+			else
+			{
 				btmpresult = false;
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort1: %d",
 					Sort1Max, Sort1Min, Sort1Max - Sort1Min, Delta_Ci_Differ);
 			}
-		} else {
+		}
+		else
+		{
 			printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort1: %d",
 				Sort1Max, Sort1Min, Sort1Max - Sort1Min, Delta_Ci_Differ);
 		}
 
 		printk("\r\nMax Deviation,Sort1: %d, ", Sort1Max - Sort1Min);
 	}
-	if (bUseSort2) {
+	if (bUseSort2)
+	{
 
-		if (Delta_Ci_Differ_S2 <= Sort2Max - Sort2Min) {
-			if (bUseCriticalValue) {
-				if (Sort2Max - Sort2Min >= Critical_Delta_S2) {
+		if (Delta_Ci_Differ_S2 <= Sort2Max - Sort2Min)
+		{
+			if (bUseCriticalValue)
+			{
+				if (Sort2Max - Sort2Min >= Critical_Delta_S2)
+				{
 					btmpresult = false;
-				} else {
+				}
+				else
+				{
 					if (focal_abs(Sort2Max) > focal_abs(Sort2Min))
 						Num = Sort2Max_ChNum;
 					else
@@ -987,25 +1363,35 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 				}
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Critical Deviation of Sort2: %d",
 					Sort2Max, Sort2Min, Sort2Max - Sort2Min, Critical_Delta_S2);
-			} else {
+			}
+			else
+			{
 				btmpresult = false;
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort2: %d",
 					Sort2Max, Sort2Min, Sort2Max - Sort2Min, Delta_Ci_Differ_S2);
 			}
-		} else {
+		}
+		else
+		{
 			printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort2: %d",
 				Sort2Max, Sort2Min, Sort2Max - Sort2Min, Delta_Ci_Differ_S2);
 		}
 
 		printk("\r\nSort2: %d, ", Sort2Max - Sort2Min);
 	}
-	if (bUseSort3) {
+	if (bUseSort3)
+	{
 
-		if (Delta_Ci_Differ_S3 <= Sort3Max - Sort3Min) {
-			if (bUseCriticalValue) {
-				if (Sort3Max - Sort3Min >= Critical_Delta_S3) {
+		if (Delta_Ci_Differ_S3 <= Sort3Max - Sort3Min)
+		{
+			if (bUseCriticalValue)
+			{
+				if (Sort3Max - Sort3Min >= Critical_Delta_S3)
+				{
 					btmpresult = false;
-				} else {
+				}
+				else
+				{
 					if (focal_abs(Sort3Max) > focal_abs(Sort3Min))
 						Num = Sort3Max_ChNum;
 					else
@@ -1015,25 +1401,35 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 				}
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Critical Deviation of Sort3: %d",
 					Sort3Max, Sort3Min, Sort3Max - Sort3Min, Critical_Delta_S3);
-			} else {
+			}
+			else
+			{
 				btmpresult = false;
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort3: %d",
 					Sort3Max, Sort3Min, Sort3Max - Sort3Min, Delta_Ci_Differ_S3);
 
 			}
-		} else {
+		}
+		else
+		{
 			printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort3: %d",
 				Sort3Max, Sort3Min, Sort3Max - Sort3Min, Delta_Ci_Differ_S3);
 
 		}
 		printk("\r\nSort3: %d, ", Sort3Max - Sort3Min);
 	}
-	if (bUseSort4) {
-		if (Delta_Ci_Differ_S4 <= Sort4Max - Sort4Min) {
-			if (bUseCriticalValue) {
-				if (Sort4Max - Sort4Min >= Critical_Delta_S4) {
+	if (bUseSort4)
+	{
+		if (Delta_Ci_Differ_S4 <= Sort4Max - Sort4Min)
+		{
+			if (bUseCriticalValue)
+			{
+				if (Sort4Max - Sort4Min >= Critical_Delta_S4)
+				{
 					btmpresult = false;
-				} else {
+				}
+				else
+				{
 					if (focal_abs(Sort4Max) > focal_abs(Sort4Min))
 						Num = Sort4Max_ChNum;
 					else
@@ -1044,25 +1440,35 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Critical Deviation of Sort4: %d",
 					Sort4Max, Sort4Min, Sort4Max - Sort4Min, Critical_Delta_S4);
 
-			} else {
+			}
+			else
+			{
 				btmpresult = false;
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort4: %d",
 					Sort4Max, Sort4Min, Sort4Max - Sort4Min, Delta_Ci_Differ_S4);
 
 			}
-		} else {
+		}
+		else
+		{
 			printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort4: %d",
 				Sort4Max, Sort4Min, Sort4Max - Sort4Min, Delta_Ci_Differ_S4);
 
 		}
 		printk("\r\nSort4: %d, ", Sort4Max - Sort4Min);
 	}
-	if (bUseSort5) {
-		if (Delta_Ci_Differ_S5 <= Sort5Max - Sort5Min) {
-			if (bUseCriticalValue) {
-				if (Sort5Max - Sort5Min >= Critical_Delta_S5) {
+	if (bUseSort5)
+	{
+		if (Delta_Ci_Differ_S5 <= Sort5Max - Sort5Min)
+		{
+			if (bUseCriticalValue)
+			{
+				if (Sort5Max - Sort5Min >= Critical_Delta_S5)
+				{
 					btmpresult = false;
-				} else {
+				}
+				else
+				{
 					if (focal_abs(Sort5Max) > focal_abs(Sort5Min))
 						Num = Sort5Max_ChNum;
 					else
@@ -1073,25 +1479,35 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Critical Deviation of Sort5: %d",
 					Sort5Max, Sort5Min, Sort5Max - Sort5Min, Critical_Delta_S5);
 
-			} else {
+			}
+			else
+			{
 				btmpresult = false;
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort5: %d",
 					Sort5Max, Sort5Min, Sort5Max - Sort5Min, Delta_Ci_Differ_S5);
 
 			}
-		} else {
+		}
+		else
+		{
 			printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort5: %d",
 				Sort5Max, Sort5Min, Sort5Max - Sort5Min, Delta_Ci_Differ_S5);
 
 		}
 		printk("\r\nSort5: %d, ", Sort5Max - Sort5Min);
 	}
-	if (bUseSort6) {
-		if (Delta_Ci_Differ_S6 <= Sort6Max - Sort6Min) {
-			if (bUseCriticalValue) {
-				if (Sort6Max - Sort6Min >= Critical_Delta_S6) {
+	if (bUseSort6)
+	{
+		if (Delta_Ci_Differ_S6 <= Sort6Max - Sort6Min)
+		{
+			if (bUseCriticalValue)
+			{
+				if (Sort6Max - Sort6Min >= Critical_Delta_S6)
+				{
 					btmpresult = false;
-				} else {
+				}
+				else
+				{
 					if (focal_abs(Sort6Max) > focal_abs(Sort6Min))
 						Num = Sort6Max_ChNum;
 					else
@@ -1101,13 +1517,17 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 				}
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Critical Deviation of Sort6: %d",
 					Sort6Max, Sort6Min, Sort6Max - Sort6Min, Critical_Delta_S6);
-			} else {
+			}
+			else
+			{
 				btmpresult = false;
 				printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort6: %d",
 					Sort6Max, Sort6Min, Sort6Max - Sort6Min, Delta_Ci_Differ_S6);
 
 			}
-		} else {
+		}
+		else
+		{
 			printk("\r\n\r\n// Condition1: Max of Delta CB_Differ: %d, Min of Delta CB_Differ: %d, Get Deviation: %d, Set Deviation of Sort6: %d",
 				Sort6Max, Sort6Min, Sort6Max - Sort6Min, Delta_Ci_Differ_S6);
 
@@ -1115,35 +1535,44 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 		printk("\r\nSort6: %d, ", Sort6Max - Sort6Min);
 	}
 
+	最大Delta_Ci不能超过预设值
 
 	Delta_Min = Delta_Max = focal_abs(m_DeltaCb_DifferData[0]);
-	for (i = 1; i < g_ScreenSetParam.iChannelsNum/*readlen*/; i++) {
-		if (focal_abs(m_DeltaCb_DifferData[i]) < Delta_Min) {
+	for (i = 1; i < g_ScreenSetParam.iChannelsNum/*readlen*/; i++)
+	{
+		if (focal_abs(m_DeltaCb_DifferData[i]) < Delta_Min)
+		{
 			Delta_Min = focal_abs(m_DeltaCb_DifferData[i]);
 		}
-		if (focal_abs(m_DeltaCb_DifferData[i]) > Delta_Max) {
+		if (focal_abs(m_DeltaCb_DifferData[i]) > Delta_Max)
+		{
 			Delta_Max = focal_abs(m_DeltaCb_DifferData[i]);
 		}
 	}
 
 	set_Delta_Cb_Max = g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Differ_Max;
-	if (set_Delta_Cb_Max < focal_abs(Delta_Max)) {
+	if (set_Delta_Cb_Max < focal_abs(Delta_Max))
+	{
 		btmpresult = false;
 	}
 	printk("\r\n\r\n// Condition2: Get Max Differ Data of Delta_CB(abs): %d, Set Max Differ Data of Delta_CB(abs): %d",Delta_Max, set_Delta_Cb_Max);
 
 
-	if (g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Include_Key_Test) {
+	if (g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Include_Key_Test)
+	{
 
 		SetKeyMax = g_stCfg_FT6X36_BasicThreshold.DeltaCbTest_Key_Differ_Max;
 
 		Key_Delta_Max = focal_abs(m_DeltaCb_DifferData[g_ScreenSetParam.iChannelsNum]);
-		for (i = g_ScreenSetParam.iChannelsNum; i < g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum; i++) {
-			if (focal_abs(m_DeltaCb_DifferData[i]) > Key_Delta_Max) {
+		for (i = g_ScreenSetParam.iChannelsNum; i < g_ScreenSetParam.iChannelsNum + g_ScreenSetParam.iKeyNum; i++)
+		{
+			if (focal_abs(m_DeltaCb_DifferData[i]) > Key_Delta_Max)
+			{
 				Key_Delta_Max = focal_abs(m_DeltaCb_DifferData[i]);
 			}
 		}
-		if (SetKeyMax <= Key_Delta_Max) {
+		if (SetKeyMax <= Key_Delta_Max)
+		{
 			btmpresult = false;
 		}
 		printk("\r\n\r\n// Condition3: Include Key Test, Get Max Key Data: %d, Set Max Key Data: %d", Key_Delta_Max, SetKeyMax);
@@ -1151,31 +1580,46 @@ unsigned char FT6X36_TestItem_DeltaCbTest(unsigned char *bTestResult)
 
 	printk("\r\nMax Differ Data of Delta_CB(abs): %d ", Delta_Max);
 
-	if (bCriticalResult && btmpresult) {
+	if (bCriticalResult && btmpresult)
+	{
 		printk("\r\n\r\nDelta CB Test has Critical Result(TBD)!");
 	}
 
-	if (btmpresult) {
+	if (btmpresult)
+	{
 		printk("\r\n\r\n//Delta CB Test is OK!\r\n");
 
 		if (bCriticalResult)
 			* bTestResult = 2;
 		else
 			* bTestResult = 1;
-	} else {
+	}
+	else
+	{
 		printk("\r\n\r\n//Delta CB Test is NG!\r\n");
 		* bTestResult = 0;
 	}
+	收集测试数据，存入CSV文件
 
 	Save_Test_Data(m_DeltaCbData, 0, 1, g_ScreenSetParam.iChannelsNum+g_ScreenSetParam.iKeyNum, 1);
 
+	收集测试数据，存入CSV文件
 
 	Save_Test_Data(m_DeltaCb_DifferData, 0, 1, g_ScreenSetParam.iChannelsNum+g_ScreenSetParam.iKeyNum, 2);
 
+	收集Delta Ci Data，存入CSV文件
 	return 0;
 }
 
-unsigned char FT6X36_TestItem_ChannelsDeviationTest(unsigned char *bTestResult)  {
+/************************************************************************
+* Name: FT6X36_TestItem_ChannelsDeviationTest
+* Brief:  TestItem: Channels Deviation Test. Check if Channels Deviation is within the range.
+* Input: none
+* Output: bTestResult, PASS or FAIL
+* Return: Comm Code. Code = 0x00 is OK, else fail.
+***********************************************************************/
+unsigned char FT6X36_TestItem_ChannelsDeviationTest(unsigned char *bTestResult)
+{
 
 
 	bool btmpresult = true;
@@ -1215,15 +1659,22 @@ unsigned char FT6X36_TestItem_ChannelsDeviationTest(unsigned char *bTestResult) 
 
 	printk("\r\n\r\n==============================Test Item: -------- Channels Deviation Test ");
 
+	显示Delta Ci Differ
 
-	for (i = 0; i < g_ScreenSetParam.iChannelsNum; i++) {
+	for (i = 0; i < g_ScreenSetParam.iChannelsNum; i++)
+	{
 		m_DeltaCb_DifferData[i] = m_DeltaCbData[i] - g_stCfg_SCap_DetailThreshold.DeltaCbTest_Base[i];
-		if (i == 0) {
+		if (i == 0)
+		{
 			printk("\r\n\r\n//======= Differ Data of Delta CB: ");
 			printk("\r\nLeft Channel:	");
-		} else if (i * 2 == g_ScreenSetParam.iChannelsNum) {
+		}
+		else if (i * 2 == g_ScreenSetParam.iChannelsNum)
+		{
 			printk("\r\nRight Channel:	");
-		} else if (i ==  g_ScreenSetParam.iChannelsNum) {
+		}
+		else if (i ==  g_ScreenSetParam.iChannelsNum)
+		{
 			printk("\r\nKey:		");
 		}
 		printk("%3d	", m_DeltaCb_DifferData[i]);
@@ -1274,37 +1725,59 @@ unsigned char FT6X36_TestItem_ChannelsDeviationTest(unsigned char *bTestResult) 
 	MaxDev_AllS5 = 0;
 	MaxDev_AllS6 = 0;
 
-	for (i = 0; i < g_ScreenSetParam.iChannelsNum/*readlen*/; i++) {
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 1) {
-			if (bFirstUseSort1) {
+	for (i = 0; i < g_ScreenSetParam.iChannelsNum/*readlen*/; i++)
+	{
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 1)
+		{
+			if (bFirstUseSort1)
+			{
 				bFirstUseSort1 = false;
-			} else {
-				if (Sort1LastNum + 1 == i) {
+			}
+			else
+			{
+				if (Sort1LastNum + 1 == i)相邻通道
+				{
+
+					总通道分两部分，前半部分的结尾不与后半部分的开始相比较，注意通道从0开始，前半部分的结尾是g_ScreenSetParam.iChannelsNum/2 - 1
 
 
-					if (Sort1LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2) {
+					if (Sort1LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2)
+					{
 						Sort1LastNum = i;
 						continue;
-					} else if (Sort1LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4) {
+					}
+					else if (Sort1LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4)
+					{
 						Sort1LastNum = i;
 						continue;
-					} else if (Sort1LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4) {
+					}
+					else if (Sort1LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4)
+					{
 						Sort1LastNum = i;
 						continue;
-					} else {
+					}
+					else
+					{
 						GetDeviation = focal_abs(m_DeltaCb_DifferData[i] - m_DeltaCb_DifferData[Sort1LastNum]);
-						if (GetDeviation >= DeviationMax_S1) {
-							if (bUseCriticalValue) {
-								if (GetDeviation >= Critical_Channel_S1) {
+						if (GetDeviation >= DeviationMax_S1)
+						{
+							if (bUseCriticalValue)
+							{
+								if (GetDeviation >= Critical_Channel_S1)
+								{
 									btmpresult = false;
 									printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation 0f Sort1: %d",
 										i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, Critical_Channel_S1);
 
-								} else {
+								}
+								else
+								{
 
 									bCriticalResult = true;
 								}
-							} else {
+							}
+							else
+							{
 								btmpresult = false;
 								printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation 0f Sort1: %d",
 									i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, DeviationMax_S1);
@@ -1319,34 +1792,51 @@ unsigned char FT6X36_TestItem_ChannelsDeviationTest(unsigned char *bTestResult) 
 			}
 			Sort1LastNum = i;
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 2) {
-			if (bFirstUseSort2) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 2)
+		{
+			if (bFirstUseSort2)
+			{
 				bFirstUseSort2 = false;
-			} else {
-				if (Sort2LastNum + 1 == i) {
-					if (Sort2LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2) {
+			}
+			else
+			{
+				if (Sort2LastNum + 1 == i)相邻通道
+				{
+					if (Sort2LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2)
+					{
 						Sort2LastNum = i;
 						continue;
-					} else if (Sort2LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4) {
+					}
+					else if (Sort2LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4)
+					{
 						Sort2LastNum = i;
 						continue;
-					} else if (Sort2LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4) {
+					}
+					else if (Sort2LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4)
+					{
 						Sort2LastNum = i;
 						continue;
 					}
 					GetDeviation = focal_abs(m_DeltaCb_DifferData[i] - m_DeltaCb_DifferData[Sort2LastNum]);
-					if (GetDeviation >= DeviationMax_S2) {
-						if (bUseCriticalValue) {
-							if (GetDeviation >= Critical_Channel_S2) {
+					if (GetDeviation >= DeviationMax_S2)
+					{
+						if (bUseCriticalValue)
+						{
+							if (GetDeviation >= Critical_Channel_S2)
+							{
 								btmpresult = false;
 								printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation 0f Sort2: %d",
 									i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, Critical_Channel_S2);
 
-							} else {
+							}
+							else
+							{
 
 								bCriticalResult = true;
 							}
-						} else {
+						}
+						else
+						{
 							btmpresult = false;
 							printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation of Sort2: %d",
 								i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, DeviationMax_S2);
@@ -1360,34 +1850,51 @@ unsigned char FT6X36_TestItem_ChannelsDeviationTest(unsigned char *bTestResult) 
 			}
 			Sort2LastNum = i;
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 3) {
-			if (bFirstUseSort3) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 3)
+		{
+			if (bFirstUseSort3)
+			{
 				bFirstUseSort3 = false;
-			} else {
-				if (Sort3LastNum + 1 == i) {
-					if (Sort3LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2) {
+			}
+			else
+			{
+				if (Sort3LastNum + 1 == i)相邻通道
+				{
+					if (Sort3LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2)
+					{
 						Sort3LastNum = i;
 						continue;
-					} else if (Sort3LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4) {
+					}
+					else if (Sort3LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4)
+					{
 						Sort3LastNum = i;
 						continue;
-					} else if (Sort3LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4) {
+					}
+					else if (Sort3LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4)
+					{
 						Sort3LastNum = i;
 						continue;
 					}
 					GetDeviation = focal_abs(m_DeltaCb_DifferData[i] - m_DeltaCb_DifferData[Sort3LastNum]);
-					if (GetDeviation >= DeviationMax_S3) {
-						if (bUseCriticalValue) {
-							if (GetDeviation >= Critical_Channel_S3) {
+					if (GetDeviation >= DeviationMax_S3)
+					{
+						if (bUseCriticalValue)
+						{
+							if (GetDeviation >= Critical_Channel_S3)
+							{
 								btmpresult = false;
 								printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation 0f Sort3: %d",
 									i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, Critical_Channel_S3);
 
-							} else {
+							}
+							else
+							{
 
 								bCriticalResult = true;
 							}
-						} else {
+						}
+						else
+						{
 							btmpresult = false;
 							printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation of Sort3: %d",
 								i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, DeviationMax_S3);
@@ -1400,34 +1907,51 @@ unsigned char FT6X36_TestItem_ChannelsDeviationTest(unsigned char *bTestResult) 
 			}
 			Sort3LastNum = i;
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 4) {
-			if (bFirstUseSort4) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 4)
+		{
+			if (bFirstUseSort4)
+			{
 				bFirstUseSort4 = false;
-			} else {
-				if (Sort4LastNum + 1 == i) {
-					if (Sort4LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2) {
+			}
+			else
+			{
+				if (Sort4LastNum + 1 == i)相邻通道
+				{
+					if (Sort4LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2)
+					{
 						Sort4LastNum = i;
 						continue;
-					} else if (Sort4LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4) {
+					}
+					else if (Sort4LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4)
+					{
 						Sort4LastNum = i;
 						continue;
-					} else if (Sort4LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4) {
+					}
+					else if (Sort4LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4)
+					{
 						Sort4LastNum = i;
 						continue;
 					}
 					GetDeviation = focal_abs(m_DeltaCb_DifferData[i] - m_DeltaCb_DifferData[Sort4LastNum]);
-					if (GetDeviation >= DeviationMax_S4) {
-						if (bUseCriticalValue) {
-							if (GetDeviation >= Critical_Channel_S4) {
+					if (GetDeviation >= DeviationMax_S4)
+					{
+						if (bUseCriticalValue)
+						{
+							if (GetDeviation >= Critical_Channel_S4)
+							{
 								btmpresult = false;
 								printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation 0f Sort4: %d",
 									i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, Critical_Channel_S4);
 
-							} else {
+							}
+							else
+							{
 
 								bCriticalResult = true;
 							}
-						} else {
+						}
+						else
+						{
 							btmpresult = false;
 							printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation of Sort4: %d",
 								i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, DeviationMax_S4);
@@ -1440,34 +1964,51 @@ unsigned char FT6X36_TestItem_ChannelsDeviationTest(unsigned char *bTestResult) 
 			}
 			Sort4LastNum = i;
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 5) {
-			if (bFirstUseSort5) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 5)
+		{
+			if (bFirstUseSort5)
+			{
 				bFirstUseSort5 = false;
-			} else {
-				if (Sort5LastNum + 1 == i) {
-					if (Sort5LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2) {
+			}
+			else
+			{
+				if (Sort5LastNum + 1 == i)相邻通道
+				{
+					if (Sort5LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2)
+					{
 						Sort5LastNum = i;
 						continue;
-					} else if (Sort5LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4) {
+					}
+					else if (Sort5LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4)
+					{
 						Sort5LastNum = i;
 						continue;
-					} else if (Sort5LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4) {
+					}
+					else if (Sort5LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4)
+					{
 						Sort5LastNum = i;
 						continue;
 					}
 					GetDeviation = focal_abs(m_DeltaCb_DifferData[i] - m_DeltaCb_DifferData[Sort5LastNum]);
-					if (GetDeviation >= DeviationMax_S5) {
-						if (bUseCriticalValue) {
-							if (GetDeviation >= Critical_Channel_S5) {
+					if (GetDeviation >= DeviationMax_S5)
+					{
+						if (bUseCriticalValue)
+						{
+							if (GetDeviation >= Critical_Channel_S5)
+							{
 								btmpresult = false;
 								printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation 0f Sort5: %d",
 									i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, Critical_Channel_S5);
 
-							} else {
+							}
+							else
+							{
 
 								bCriticalResult = true;
 							}
-						} else {
+						}
+						else
+						{
 							btmpresult = false;
 							printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation of Sort5: %d",
 								i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, DeviationMax_S5);
@@ -1481,34 +2022,51 @@ unsigned char FT6X36_TestItem_ChannelsDeviationTest(unsigned char *bTestResult) 
 			Sort5LastNum = i;
 		}
 
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 6) {
-			if (bFirstUseSort6) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 6)
+		{
+			if (bFirstUseSort6)
+			{
 				bFirstUseSort6 = false;
-			} else {
-				if (Sort6LastNum + 1 == i) {
-					if (Sort6LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2) {
+			}
+			else
+			{
+				if (Sort6LastNum + 1 == i)相邻通道
+				{
+					if (Sort6LastNum <= g_ScreenSetParam.iChannelsNum/2 - 1 && i >= g_ScreenSetParam.iChannelsNum/2)
+					{
 						Sort6LastNum = i;
 						continue;
-					} else if (Sort6LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4) {
+					}
+					else if (Sort6LastNum <= g_ScreenSetParam.iChannelsNum/4 - 1 && i >= g_ScreenSetParam.iChannelsNum/4)
+					{
 						Sort6LastNum = i;
 						continue;
-					} else if (Sort6LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4) {
+					}
+					else if (Sort6LastNum <= g_ScreenSetParam.iChannelsNum * 3/4 - 1 && i >= g_ScreenSetParam.iChannelsNum * 3/4)
+					{
 						Sort6LastNum = i;
 						continue;
 					}
 					GetDeviation = focal_abs(m_DeltaCb_DifferData[i] - m_DeltaCb_DifferData[Sort6LastNum]);
-					if (GetDeviation >= DeviationMax_S6) {
-						if (bUseCriticalValue) {
-							if (GetDeviation >= Critical_Channel_S6) {
+					if (GetDeviation >= DeviationMax_S6)
+					{
+						if (bUseCriticalValue)
+						{
+							if (GetDeviation >= Critical_Channel_S6)
+							{
 								btmpresult = false;
 								printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation 0f Sort6: %d",
 									i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, Critical_Channel_S6);
 
-							} else {
+							}
+							else
+							{
 
 								bCriticalResult = true;
 							}
-						} else {
+						}
+						else
+						{
 							btmpresult = false;
 							printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation of Sort6: %d",
 								i-1 + 1, m_DeltaCb_DifferData[i-1], i + 1, m_DeltaCb_DifferData[i], GetDeviation, DeviationMax_S6);
@@ -1522,63 +2080,79 @@ unsigned char FT6X36_TestItem_ChannelsDeviationTest(unsigned char *bTestResult) 
 			Sort6LastNum = i;
 		}
 	}
-		if (!bFirstUseSort1) {
+		if (!bFirstUseSort1)
+		{
 			printk("\r\n\r\nGet max deviation of Sort1: %d,  Set max deviation of Sort1: %d", MaxDev_AllS1,DeviationMax_S1);
 
 		}
-		if (!bFirstUseSort2) {
+		if (!bFirstUseSort2)
+		{
 			printk("\r\n\r\nGet max deviation of Sort2: %d,  Set max deviation of Sort2: %d", MaxDev_AllS2,DeviationMax_S2);
 
 		}
-		if (!bFirstUseSort3) {
+		if (!bFirstUseSort3)
+		{
 			printk("\r\n\r\nGet max deviation of Sort3: %d,  Set max deviation of Sort3: %d", MaxDev_AllS3,DeviationMax_S3);
 
 		}
-		if (!bFirstUseSort4) {
+		if (!bFirstUseSort4)
+		{
 			printk("\r\n\r\nGet max deviation of Sort4: %d,  Set max deviation of Sort4: %d", MaxDev_AllS4,DeviationMax_S4);
 
 		}
-		if (!bFirstUseSort5) {
+		if (!bFirstUseSort5)
+		{
 			printk("\r\n\r\nGet max deviation of Sort5: %d,  Set max deviation of Sort5: %d", MaxDev_AllS5,DeviationMax_S5);
 
 		}
-		if (!bFirstUseSort6) {
+		if (!bFirstUseSort6)
+		{
 			printk("\r\n\r\nGet max deviation of Sort6: %d,  Set max deviation of Sort6: %d", MaxDev_AllS6,DeviationMax_S6);
 
 		}
 
 		printk("\r\n\r\nMax Deviation, ");
-		if (!bFirstUseSort1) {
+		if (!bFirstUseSort1)
+		{
 			printk("Sort1: %d, ", MaxDev_AllS1);
 		}
-		if (!bFirstUseSort2) {
+		if (!bFirstUseSort2)
+		{
 			printk("Sort2: %d, ", MaxDev_AllS2);
 		}
-		if (!bFirstUseSort3) {
+		if (!bFirstUseSort3)
+		{
 			printk("Sort3: %d, ", MaxDev_AllS3);
 		}
-		if (!bFirstUseSort4) {
+		if (!bFirstUseSort4)
+		{
 			printk("Sort4: %d, ", MaxDev_AllS4);
 		}
-		if (!bFirstUseSort5) {
+		if (!bFirstUseSort5)
+		{
 			printk("Sort5: %d, ", MaxDev_AllS5);
 		}
-		if (!bFirstUseSort6) {
+		if (!bFirstUseSort6)
+		{
 			printk("Sort6: %d, ", MaxDev_AllS6);
 		}
 
-		if (bCriticalResult && btmpresult) {
+		if (bCriticalResult && btmpresult)
+		{
 			printk("\r\n\r\nChannels Deviation Test has Critical Result(TBD)!");
 		}
 
-	if (btmpresult) {
+	if (btmpresult)
+	{
 		printk("\r\n\r\n//Channels Deviation Test is OK!\r\n");
 		* bTestResult = true;
 			if (bCriticalResult)
 				* bTestResult = 2;
 			else
 				* bTestResult = true;
-	} else {
+	}
+	else
+	{
 		* bTestResult = false;
 		printk("\r\n\r\n//Channels Deviation Test is NG!\r\n");
 	}
@@ -1632,15 +2206,22 @@ unsigned char FT6X36_TestItem_TwoSidesDeviationTest(unsigned char *bTestResult)
 
 	printk("\r\n\r\n==============================Test Item: -------- Two Sides Deviation Test ");
 
+	显示Delta Ci Differ
 
-	for (i = 0; i < g_ScreenSetParam.iChannelsNum; i++) {
+	for (i = 0; i < g_ScreenSetParam.iChannelsNum; i++)
+	{
 		m_DeltaCb_DifferData[i] = m_DeltaCbData[i] - g_stCfg_SCap_DetailThreshold.DeltaCbTest_Base[i];
-		if (i == 0) {
+		if (i == 0)
+		{
 			printk("\r\n\r\n//======= Differ Data of Delta CB: ");
 			printk("\r\nLeft Channel:	");
-		} else if (i * 2 == g_ScreenSetParam.iChannelsNum) {
+		}
+		else if (i * 2 == g_ScreenSetParam.iChannelsNum)
+		{
 			printk("\r\nRight Channel:	");
-		} else if (i ==  g_ScreenSetParam.iChannelsNum) {
+		}
+		else if (i ==  g_ScreenSetParam.iChannelsNum)
+		{
 			printk("\r\nKey:		");
 		}
 		printk("%3d	", m_DeltaCb_DifferData[i]);
@@ -1682,22 +2263,36 @@ unsigned char FT6X36_TestItem_TwoSidesDeviationTest(unsigned char *bTestResult)
 
 	GetDeviation = 0;
 
-	for (i = 0; i < g_ScreenSetParam.iChannelsNum/2; i++) {
+	for (i = 0; i < g_ScreenSetParam.iChannelsNum/2; i++)
+	{
 		GetDeviation = abs(m_DeltaCb_DifferData[i] - m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2]);
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 1) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 1)
+		{
 			bUseSort1 = true;
-			if (GetDeviation >= DeviationMax) {
-				if (bUseCriticalValue) {
-					if (GetDeviation >= Critical_TwoSides_S1) {
+			if (GetDeviation >= DeviationMax)
+			{
+				if (bUseCriticalValue)
+				{
+					if (GetDeviation >= Critical_TwoSides_S1)
+					{
 						btmpresult = false;
 						printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation of Sort1: %d",
 							i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, Critical_TwoSides_S1);
 
-					} else {
+					}
+					else
+					{
+
+
+
+
+
 
 						bCriticalResult = true;
 					}
-				} else {
+				}
+				else
+				{
 					btmpresult = false;
 					printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation of Sort1: %d",
 						i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, DeviationMax);
@@ -1707,20 +2302,32 @@ unsigned char FT6X36_TestItem_TwoSidesDeviationTest(unsigned char *bTestResult)
 			if (DevMax_AllS1 < GetDeviation)
 				DevMax_AllS1 = GetDeviation;
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 2) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 2)
+		{
 			bUseSort2 = true;
-			if (GetDeviation >= DeviationMax_S2) {
-				if (bUseCriticalValue) {
-					if (GetDeviation >= Critical_TwoSides_S2) {
+			if (GetDeviation >= DeviationMax_S2)
+			{
+				if (bUseCriticalValue)
+				{
+					if (GetDeviation >= Critical_TwoSides_S2)
+					{
 						btmpresult = false;
 						printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation of Sort2: %d",
 							i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, Critical_TwoSides_S2);
 
-					} else {
+					}
+					else
+					{
+
+
+
+
 
 						bCriticalResult = true;
 					}
-				} else {
+				}
+				else
+				{
 					btmpresult = false;
 					printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation of Sort2: %d",
 						i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, DeviationMax_S2);
@@ -1730,19 +2337,32 @@ unsigned char FT6X36_TestItem_TwoSidesDeviationTest(unsigned char *bTestResult)
 			if (DevMax_AllS2 < GetDeviation)
 				DevMax_AllS2 = GetDeviation;
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 3) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 3)
+		{
 			bUseSort3 = true;
-			if (GetDeviation >= DeviationMax_S3) {
-				if (bUseCriticalValue) {
-					if (GetDeviation >= Critical_TwoSides_S3) {
+			if (GetDeviation >= DeviationMax_S3)
+			{
+				if (bUseCriticalValue)
+				{
+					if (GetDeviation >= Critical_TwoSides_S3)
+					{
 						btmpresult = false;
 						printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation of Sort3: %d",
 							i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, Critical_TwoSides_S3);
 
-					} else {
+					}
+					else
+					{
+
+
+
+
+
 						bCriticalResult = true;
 					}
-				} else {
+				}
+				else
+				{
 					btmpresult = false;
 					printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation of Sort3: %d",
 						i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, DeviationMax_S3);
@@ -1752,19 +2372,32 @@ unsigned char FT6X36_TestItem_TwoSidesDeviationTest(unsigned char *bTestResult)
 			if (DevMax_AllS3 < GetDeviation)
 				DevMax_AllS3 = GetDeviation;
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 4) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 4)
+		{
 			bUseSort4 = true;
-			if (GetDeviation >= DeviationMax_S4) {
-				if (bUseCriticalValue) {
-					if (GetDeviation >= Critical_TwoSides_S4) {
+			if (GetDeviation >= DeviationMax_S4)
+			{
+				if (bUseCriticalValue)
+				{
+					if (GetDeviation >= Critical_TwoSides_S4)
+					{
 						btmpresult = false;
 						printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation of Sort4: %d",
 							i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, Critical_TwoSides_S4);
 
-					} else {
+					}
+					else
+					{
+
+
+
+
+
 						bCriticalResult = true;
 					}
-				} else {
+				}
+				else
+				{
 					btmpresult = false;
 					printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation of Sort4: %d",
 						i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, DeviationMax_S4);
@@ -1774,19 +2407,32 @@ unsigned char FT6X36_TestItem_TwoSidesDeviationTest(unsigned char *bTestResult)
 			if (DevMax_AllS4 < GetDeviation)
 				DevMax_AllS4 = GetDeviation;
 		}
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 5) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 5)
+		{
 			bUseSort5 = true;
-			if (GetDeviation >= DeviationMax_S5) {
-				if (bUseCriticalValue) {
-					if (GetDeviation >= Critical_TwoSides_S5) {
+			if (GetDeviation >= DeviationMax_S5)
+			{
+				if (bUseCriticalValue)
+				{
+					if (GetDeviation >= Critical_TwoSides_S5)
+					{
 						btmpresult = false;
 						printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation of Sort5: %d",
 							i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, Critical_TwoSides_S5);
 
-					} else {
+					}
+					else
+					{
+
+
+
+
+
 						bCriticalResult = true;
 					}
-				} else {
+				}
+				else
+				{
 					btmpresult = false;
 					printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation of Sort5: %d",
 						i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, DeviationMax_S5);
@@ -1798,19 +2444,32 @@ unsigned char FT6X36_TestItem_TwoSidesDeviationTest(unsigned char *bTestResult)
 		}
 
 
-		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 6) {
+		if (g_stCfg_SCap_DetailThreshold.DeltaCxTest_Sort[i] == 6)
+		{
 			bUseSort6 = true;
-			if (GetDeviation >= DeviationMax_S6) {
-				if (bUseCriticalValue) {
-					if (GetDeviation >= Critical_TwoSides_S6) {
+			if (GetDeviation >= DeviationMax_S6)
+			{
+				if (bUseCriticalValue)
+				{
+					if (GetDeviation >= Critical_TwoSides_S6)
+					{
 						btmpresult = false;
 						printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Critical Deviation of Sort6: %d",
 							i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, Critical_TwoSides_S6);
 
-					} else {
+					}
+					else
+					{
+
+
+
+
+
 						bCriticalResult = true;
 					}
-				} else {
+				}
+				else
+				{
 					btmpresult = false;
 					printk("\r\nCh_%2d, Value: %2d,	Ch_%2d, Value: %2d,	Deviation: %d,	Set Max Deviation of Sort6: %d",
 						i + 1, m_DeltaCb_DifferData[i], i + g_ScreenSetParam.iChannelsNum/2, m_DeltaCb_DifferData[i + g_ScreenSetParam.iChannelsNum/2],GetDeviation, DeviationMax_S6);
@@ -1822,68 +2481,84 @@ unsigned char FT6X36_TestItem_TwoSidesDeviationTest(unsigned char *bTestResult)
 		}
 
 	}
-	if (bUseSort1) {
+	if (bUseSort1)
+	{
 		printk("\r\n\r\nGet Max Deviation of Sort1: %d,  Set Max Deviation of Sort1: %d", DevMax_AllS1, DeviationMax);
 
 	}
-	if (bUseSort2) {
+	if (bUseSort2)
+	{
 		printk("\r\n\r\nGet Max Deviation of Sort2: %d,  Set Max Deviation of Sort2: %d", DevMax_AllS2, DeviationMax_S2);
 
 	}
-	if (bUseSort3) {
+	if (bUseSort3)
+	{
 		printk("\r\n\r\nGet Max Deviation of Sort3: %d,  Set Max Deviation of Sort3: %d", DevMax_AllS3, DeviationMax_S3);
 
 	}
-	if (bUseSort4) {
+	if (bUseSort4)
+	{
 		printk("\r\n\r\nGet Max Deviation of Sort4: %d,  Set Max Deviation of Sort4: %d", DevMax_AllS4, DeviationMax_S4);
 
 	}
-	if (bUseSort5) {
+	if (bUseSort5)
+	{
 		printk("\r\n\r\nGet Max Deviation of Sort5: %d,  Set Max Deviation of Sort5: %d", DevMax_AllS5, DeviationMax_S5);
 
 	}
-	if (bUseSort6) {
+	if (bUseSort6)
+	{
 		printk("\r\n\r\nGet Max Deviation of Sort6: %d,  Set Max Deviation of Sort6: %d", DevMax_AllS6, DeviationMax_S6);
 
 	}
 
 	printk("\r\nMax Deviation, ");
-	if (bUseSort1) {
+	if (bUseSort1)
+	{
 		printk("Sort1: %d, ", DevMax_AllS1);
 
 	}
-	if (bUseSort2) {
+	if (bUseSort2)
+	{
 		printk("Sort2: %d, ", DevMax_AllS2);
 
 	}
-	if (bUseSort3) {
+	if (bUseSort3)
+	{
 		printk("Sort3: %d, ", DevMax_AllS3);
 
 	}
-	if (bUseSort4) {
+	if (bUseSort4)
+	{
 		printk("Sort4: %d, ", DevMax_AllS4);
 
 	}
-	if (bUseSort5) {
+	if (bUseSort5)
+	{
 		printk("Sort5: %d, ", DevMax_AllS5);
 
 	}
-	if (bUseSort6) {
+	if (bUseSort6)
+	{
 		printk("Sort6: %d, ", DevMax_AllS6);
 
 	}
 
-	if (bCriticalResult && btmpresult) {
+	if (bCriticalResult && btmpresult)
+	{
 		printk("\r\n\r\nTwo Sides Deviation Test has Critical Result(TBD)!");
 	}
 
-	if (btmpresult) {
+	if (btmpresult)
+	{
 		printk("\r\n\r\n//Two Sides Deviation Test is OK!\r\n");
 		if (bCriticalResult)
 			* bTestResult = 2;
 		else
 			* bTestResult = true;
-	} else {
+	}
+	else
+	{
 		* bTestResult = false;
 		printk("\r\n\r\n//Two Sides Deviation Test is NG!\r\n");
 	}

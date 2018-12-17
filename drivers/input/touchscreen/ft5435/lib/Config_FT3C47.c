@@ -1,6 +1,6 @@
 /************************************************************************
 * Copyright (C) 2012-2015, Focaltech Systems (R)£¬All Rights Reserved.
-* Copyright (C) 2018 XiaoMi, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
 *
 * File Name: Config_FT3C47.c
 *
@@ -53,6 +53,15 @@ void OnInit_FT3C47_TestItem(char *strIniFile)
 	GetPrivateProfileString("TestItem","ADC_DETECT_TEST","1",str,strIniFile);
 	g_stCfg_FT3C47_TestItem.ADC_DETECT_TEST = atoi(str);
 
+
+
+
+
+
+
+
+
+
 	GetPrivateProfileString("TestItem","SCAP_CB_TEST","1",str,strIniFile);
 	g_stCfg_FT3C47_TestItem.SCAP_CB_TEST = atoi(str);
 
@@ -75,6 +84,39 @@ void OnInit_FT3C47_TestItem(char *strIniFile)
 
 	GetPrivateProfileString("TestItem","NOISE_TEST","0",str,strIniFile);
 	g_stCfg_FT3C47_TestItem.NOISE_TEST = atoi(str);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	GetPrivateProfileString("TestItem","WEAK_SHORT_CIRCUIT_TEST","0",str,strIniFile);
 	g_stCfg_FT3C47_TestItem.WEAK_SHORT_CIRCUIT_TEST = atoi(str);
@@ -168,6 +210,16 @@ void OnInit_FT3C47_BasicThreshold(char *strIniFile)
 	GetPrivateProfileString("Basic_Threshold","Adc_Detect_Max","0",str,strIniFile);
     g_stCfg_FT3C47_BasicThreshold.AdcDetect_Max = atoi(str);
 
+
+
+
+
+
+
+
+
+
+
 	GetPrivateProfileString("Basic_Threshold","SCapCbTest_OFF_Min","0",str,strIniFile);
 	g_stCfg_FT3C47_BasicThreshold.SCapCbTest_OFF_Min = atoi(str);
 	GetPrivateProfileString("Basic_Threshold","SCapCbTest_OFF_Max","240",str,strIniFile);
@@ -185,6 +237,13 @@ void OnInit_FT3C47_BasicThreshold(char *strIniFile)
 
 	GetPrivateProfileString("Basic_Threshold","SCapCBTest_LetTx_Disable","0",str,strIniFile);
 	g_stCfg_FT3C47_BasicThreshold.SCapCbTest_LetTx_Disable = atoi(str);
+
+
+
+
+
+
+
 
 	GetPrivateProfileString("Basic_Threshold","SCapRawDataTest_OFF_Min","5000",str,strIniFile);
 	g_stCfg_FT3C47_BasicThreshold.SCapRawDataTest_OFF_Min = atoi(str);
@@ -261,6 +320,31 @@ void OnInit_FT3C47_BasicThreshold(char *strIniFile)
 
 	GetPrivateProfileString("Basic_Threshold","NoiseTest_MinNGFrame","0",str,strIniFile);
 	g_stCfg_FT3C47_BasicThreshold.NoiseTest_MinNgFrame = atoi(str);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	GetPrivateProfileString("Basic_Threshold","WeakShortTest_CG","2000",str,strIniFile);
 	g_stCfg_FT3C47_BasicThreshold.WeakShortTest_CG = atoi(str);
@@ -382,7 +466,8 @@ void SetTestItem_FT3C47()
 
 
 
-	if (g_stCfg_FT3C47_TestItem.RESET_PIN_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.RESET_PIN_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_RESET_PIN_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -401,7 +486,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.PROJECT_CODE_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.PROJECT_CODE_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_PROJECT_CODE_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -410,7 +496,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.FW_VERSION_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.FW_VERSION_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_FW_VERSION_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -419,7 +506,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.LCM_ID_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.LCM_ID_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_LCM_ID_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -428,7 +516,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.IC_VERSION_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.IC_VERSION_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_IC_VERSION_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -442,8 +531,22 @@ void SetTestItem_FT3C47()
 	g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
 	g_stTestItem[0][g_TestItemNum].TestResult = RESULT_NULL;
 	g_TestItemNum++;
+/*
+#if ENABLE_DOUBLE_CHECK
+	//////////////////////////////////////////////////judge Normalize type
+	//if (g_ScreenSetParam.isNormalize != None)
+	{
+		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_JUDEG_NORMALIZE_TYPE;
+		//g_stTestItem[0][g_TestItemNum].strItemName = g_strEnumTestItem_FT3C47[Code_FT3C47_JUDEG_NORMALIZE_TYPE];
+		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
+		g_stTestItem[0][g_TestItemNum].TestResult= RESULT_NULL;
+		g_TestItemNum++;
+	}
+#endif
+*/
 
-	if (g_stCfg_FT3C47_TestItem.TE_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.TE_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_TE_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -452,7 +555,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.CHANNEL_NUM_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.CHANNEL_NUM_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_CHANNEL_NUM_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -461,7 +565,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.NOISE_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.NOISE_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_NOISE_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -470,7 +575,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.RAWDATA_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.RAWDATA_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_RAWDATA_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -479,7 +585,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.UNIFORMITY_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.UNIFORMITY_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_UNIFORMITY_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -488,7 +595,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.SITO_RAWDATA_UNIFORMITY_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.SITO_RAWDATA_UNIFORMITY_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_SITO_RAWDATA_UNIFORMITY_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -497,7 +605,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.CM_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.CM_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_CM_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -506,7 +615,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.ADC_DETECT_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.ADC_DETECT_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_ADCDETECT_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -515,7 +625,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.SCAP_CB_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.SCAP_CB_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_SCAP_CB_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -524,7 +635,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.SCAP_RAWDATA_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.SCAP_RAWDATA_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_SCAP_RAWDATA_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -533,7 +645,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.RAWDATA_MARGIN_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.RAWDATA_MARGIN_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_RAWDATA_MARGIN_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -542,7 +655,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.WEAK_SHORT_CIRCUIT_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.WEAK_SHORT_CIRCUIT_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_WEAK_SHORT_CIRCUIT_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -551,7 +665,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.PANEL_DIFFER_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.PANEL_DIFFER_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_PANELDIFFER_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -559,7 +674,8 @@ void SetTestItem_FT3C47()
 		g_TestItemNum++;
 	}
 
-	if (g_stCfg_FT3C47_TestItem.PANEL_DIFFER_UNIFORMITY_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.PANEL_DIFFER_UNIFORMITY_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_PANELDIFFER_UNIFORMITY_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -568,7 +684,8 @@ void SetTestItem_FT3C47()
 	}
 
 
-	if (g_stCfg_FT3C47_TestItem.INT_PIN_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.INT_PIN_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_INT_PIN_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -588,7 +705,8 @@ void SetTestItem_FT3C47()
 	}*/
 
 
-	if (g_stCfg_FT3C47_TestItem.FORCETOUCH_RAWDATA_TEST == 1) {
+	if (g_stCfg_FT3C47_TestItem.FORCETOUCH_RAWDATA_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_FORCE_TOUCH_SCAP_RAWDATA_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
@@ -596,7 +714,19 @@ void SetTestItem_FT3C47()
 		g_TestItemNum++;
 	}
 
-	if (g_stCfg_FT3C47_TestItem.FORCETOUCH_CB_TEST == 1) {
+
+	/*if( g_stCfg_FT3C47_TestItem.FORCETOUCH_FLATNESS_TEST == 1)
+	{
+		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_FORCE_TOUCH_FLATNESS_TEST;
+		g_stTestItem[0][g_TestItemNum].strItemName = g_strEnumTestItem_FT3C47[Code_FT3C47_FORCE_TOUCH_FLATNESS_TEST];
+		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;
+		g_stTestItem[0][g_TestItemNum].ItemType = Type_DataTestItem;
+		g_TestItemNum++;
+	}*/
+
+
+	if (g_stCfg_FT3C47_TestItem.FORCETOUCH_CB_TEST == 1)
+	{
 		g_stTestItem[0][g_TestItemNum].ItemCode = Code_FT3C47_FORCE_TOUCH_SCAP_CB_TEST;
 
 		g_stTestItem[0][g_TestItemNum].TestNum = g_TestItemNum;

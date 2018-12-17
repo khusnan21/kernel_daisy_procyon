@@ -1,6 +1,6 @@
 /************************************************************************
 * Copyright (C) 2012-2015, Focaltech Systems (R)，All Rights Reserved.
-* Copyright (C) 2018 XiaoMi, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
 *
 * File Name: Config_FT6X36.h
 *
@@ -20,7 +20,7 @@
 FT6X36
 ------------------------------------------------*/
 struct stCfg_FT6X36_TestItem
- {
+{
 	bool FW_VERSION_TEST;
 	bool FACTORY_ID_TEST;
 	bool PROJECT_CODE_TEST;
@@ -47,7 +47,7 @@ struct stCfg_FT6X36_TestItem
 };
 
 struct stCfg_FT6X36_BasicThreshold
- {
+{
 	BYTE FW_VER_VALUE;
 	BYTE Factory_ID_Number;
 	char Project_Code[32];
@@ -150,10 +150,10 @@ struct stCfg_FT6X36_BasicThreshold
 };
 
 enum enumTestItem_FT6X36
- {
-	Code_FT6X36_ENTER_FACTORY_MODE,
-	Code_FT6X36_DOWNLOAD,
-	Code_FT6X36_UPGRADE,
+{
+	Code_FT6X36_ENTER_FACTORY_MODE,所有IC都必备的测试项
+	Code_FT6X36_DOWNLOAD,所有IC都必备的测试项
+	Code_FT6X36_UPGRADE,所有IC都必备的测试项
 	Code_FT6X36_FACTORY_ID_TEST,
 	Code_FT6X36_PROJECT_CODE_TEST,
 	Code_FT6X36_FW_VERSION_TEST,
@@ -173,7 +173,7 @@ enum enumTestItem_FT6X36
 	Code_FT6X36_SREF_OPEN_TEST,
 	Code_FT6X36_TE_TEST,
 	Code_FT6X36_CB_DEVIATION_TEST,
-	Code_FT6X36_WRITE_CONFIG,
+	Code_FT6X36_WRITE_CONFIG,所有IC都必备的测试项
 	Code_FT6X36_DIFFER_TEST,
 	Code_FT6X36_WEAK_SHORT_TEST,
 	Code_FT6X36_DIFFER_TEST2,

@@ -24,6 +24,7 @@
 #define FT5X36_ID		0x14
 #define FT6X06_ID		0x06
 #define FT6X36_ID       0x36
+/* [PLATFORM]-Mod-BEGIN by TCTNB.YQJ, FR797197, 2014/11/28 add for tp gesture  */
 
 #define SET_COVER_MODE
 #define FOCALTECH_AUTO_UPGRADE		1
@@ -35,6 +36,14 @@
 #define FOCALTECH_ITO_TEST			1
 #define FOCALTECH_MAX_VKEY_NUM 3
 #define CTP_ESD_PROTECT  0
+
+
+/*[FEATURE]-Modified-BEGIN by TCTSH.xingchen.wang for task 1238223, 2015/12/25, add vr funtion*/
+
+/*[FEATURE]-Modified-END by TCTSH.xingchen.wang for task 1238223, 2015/12/25*/
+/* [PLATFORM]-Mod-END by TCTNB.YQJ*/
+
+
 
 
 struct fw_upgrade_info {
@@ -83,6 +92,7 @@ struct ft5435_ts_platform_data {
 	int num_virkey;
 	struct virkey vkeys[FOCALTECH_MAX_VKEY_NUM];
 };
+/*[FEATURE]-Modified-BEGIN by TCTSH.xingchen.wang for task 1208391, 2016/01/06, new rawdata interface*/
 struct ft5435_rawdata_test_result {
 	int result;
 	int min_limited_value;
@@ -91,4 +101,5 @@ struct ft5435_rawdata_test_result {
 	int max_value;
 	int index[350][3];
 };
+/*[FEATURE]-Modified-END by TCTSH.xingchen.wang for task 1208391, 2016/01/06*/
 #endif

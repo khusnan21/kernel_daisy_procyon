@@ -1,6 +1,6 @@
 /************************************************************************
 * Copyright (C) 2012-2015, Focaltech Systems (R)，All Rights Reserved.
-* Copyright (C) 2018 XiaoMi, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
 *
 * File Name: Config_FT3C47.h
 *
@@ -16,8 +16,13 @@
 
 #include "test_lib.h"
 
+/*-----------------------------------------------
+FT3C47和FT3C47是同一系列芯片
+FT5422\FT3C47是内部研发使用芯片代号
+FT3C47是市场使用芯片代号
+------------------------------------------------*/
 struct stCfg_FT3C47_TestItem
- {
+{
 	bool FW_VERSION_TEST;
 	bool FACTORY_ID_TEST;
 	bool PROJECT_CODE_TEST;
@@ -52,7 +57,7 @@ struct stCfg_FT3C47_TestItem
 };
 
 struct stCfg_FT3C47_BasicThreshold
- {
+{
 	BYTE FW_VER_VALUE;
 	BYTE Factory_ID_Number;
 	char Project_Code[32];
@@ -109,6 +114,14 @@ struct stCfg_FT3C47_BasicThreshold
 	int NoiseTest_Threshold;
 	int NoiseTest_MinNgFrame;
 
+
+
+
+
+
+
+
+
 	int WeakShortTest_CG;
 	int WeakShortTest_CC;
 
@@ -118,7 +131,7 @@ struct stCfg_FT3C47_BasicThreshold
 	int  Uniformity_Tx_Hole;
 	int  Uniformity_Rx_Hole;
 	int  Uniformity_MinMax_Hole;
-	bool CMTest_CheckMin;
+    bool CMTest_CheckMin;
 	bool CMTest_CheckMax;
 	int  CMTest_MinHole;
 	int  CMTest_MaxHole;
@@ -174,10 +187,10 @@ struct stCfg_FT3C47_BasicThreshold
 
 };
 enum enumTestItem_FT3C47
- {
-	Code_FT3C47_ENTER_FACTORY_MODE,
-	Code_FT3C47_DOWNLOAD,
-	Code_FT3C47_UPGRADE,
+{
+	Code_FT3C47_ENTER_FACTORY_MODE,所有IC都必备的测试项
+	Code_FT3C47_DOWNLOAD,所有IC都必备的测试项
+	Code_FT3C47_UPGRADE,所有IC都必备的测试项
 	Code_FT3C47_FACTORY_ID_TEST,
 	Code_FT3C47_PROJECT_CODE_TEST,
 	Code_FT3C47_FW_VERSION_TEST,
@@ -194,14 +207,14 @@ enum enumTestItem_FT3C47
 	Code_FT3C47_UNIFORMITY_TEST,
 	Code_FT3C47_CM_TEST,
 	Code_FT3C47_RAWDATA_MARGIN_TEST,
-	Code_FT3C47_WRITE_CONFIG,
+	Code_FT3C47_WRITE_CONFIG,所有IC都必备的测试项
 	Code_FT3C47_PANELDIFFER_TEST,
 	Code_FT3C47_PANELDIFFER_UNIFORMITY_TEST,
 	Code_FT3C47_LCM_ID_TEST,
 	Code_FT3C47_JUDEG_NORMALIZE_TYPE,
 	Code_FT3C47_TE_TEST,
 	Code_FT3C47_SITO_RAWDATA_UNIFORMITY_TEST,
-		Code_FT3C47_PATTERN_TEST,
+    	Code_FT3C47_PATTERN_TEST,
 
 	Code_FT3C47_GPIO_TEST,
 	Code_FT3C47_LCD_NOISE_TEST,

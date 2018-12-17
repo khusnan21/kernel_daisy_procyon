@@ -1,6 +1,6 @@
 /************************************************************************
 * Copyright (C) 2012-2015, Focaltech Systems (R)£¬All Rights Reserved.
-* Copyright (C) 2018 XiaoMi, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
 *
 * File Name: Test_FT3C47.h
 *
@@ -22,11 +22,11 @@ int FT3C47_get_test_data(char *pTestData);
 unsigned char FT3C47_TestItem_EnterFactoryMode(void);
 unsigned char FT3C47_TestItem_RawDataTest(bool *bTestResult);
 
-unsigned char FT3C47_TestItem_SCapRawDataTest(bool*bTestResult);
-unsigned char FT3C47_TestItem_SCapCbTest(bool*bTestResult);
+unsigned char FT3C47_TestItem_SCapRawDataTest(bool *bTestResult);
+unsigned char FT3C47_TestItem_SCapCbTest(bool *bTestResult);
 
-unsigned char FT3C47_TestItem_ForceTouch_SCapRawDataTest(bool*bTestResult);
-unsigned char FT3C47_TestItem_ForceTouch_SCapCbTest(bool*bTestResult);
+unsigned char FT3C47_TestItem_ForceTouch_SCapRawDataTest(bool *bTestResult);
+unsigned char FT3C47_TestItem_ForceTouch_SCapCbTest(bool *bTestResult);
 
 boolean GetWaterproofMode(int iTestType, unsigned char ucChannelValue);
 

@@ -1,6 +1,6 @@
 /************************************************************************
 * Copyright (C) 2012-2015, Focaltech Systems (R)£¬All Rights Reserved.
-* Copyright (C) 2018 XiaoMi, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
 *
 * File Name: Test_FT5X46.h
 *
@@ -22,8 +22,8 @@ int FT5X46_get_test_data(char *pTestData);
 unsigned char FT5X46_TestItem_EnterFactoryMode(void);
 unsigned char FT5X46_TestItem_RawDataTest(bool *bTestResult);
 
-unsigned char FT5X46_TestItem_SCapRawDataTest(bool*bTestResult);
-unsigned char FT5X46_TestItem_SCapCbTest(bool*bTestResult);
+unsigned char FT5X46_TestItem_SCapRawDataTest(bool *bTestResult);
+unsigned char FT5X46_TestItem_SCapCbTest(bool *bTestResult);
 
 boolean GetWaterproofMode(int iTestType, unsigned char ucChannelValue);
 
