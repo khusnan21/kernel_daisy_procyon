@@ -100,9 +100,9 @@ struct cam_info{
 
 #define CAM_MAP_INFO(_drv,_vendor)  \
     struct cam_info cam_info_##_drv = { \
-		 .cam_drv_name = __stringify(_drv),                           \
-		 .cam_vendro_name = __stringify(_vendor),                           \
-		 }
+        .cam_drv_name = __stringify(_drv),                           \
+        .cam_vendro_name = __stringify(_vendor),                           \
+        }
 
 char *get_emmc_name(void);
 char *map_cam_drv_to_vendor(char *drv);
