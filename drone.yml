@@ -1,5 +1,5 @@
 kind: pipeline
-name: kernel_xiaomi_daisy
+name: kernel_daisy_procyon
 
 platform:
   os: linux
